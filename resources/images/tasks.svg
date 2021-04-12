@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="292.39777mm"
+   height="61.192078mm"
+   viewBox="0 0 292.39777 61.192078"
+   version="1.1"
+   id="svg8"
+   inkscape:version="0.92.4 (unknown)"
+   sodipodi:docname="tasks.svg">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.49497475"
+     inkscape:cx="552.60879"
+     inkscape:cy="131.15327"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0"
+     inkscape:window-width="1919"
+     inkscape:window-height="1052"
+     inkscape:window-x="1"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-16.886906,-16.797619)">
+    <g
+       id="g960">
+      <g
+         id="g926">
+        <g
+           id="g848">
+          <rect
+             ry="0"
+             y="17.297619"
+             x="17.386906"
+             height="20.032738"
+             width="106.00067"
+             id="rect815"
+             style="opacity:1;fill:#ffeeaa;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0" />
+          <text
+             id="text819"
+             y="30.233706"
+             x="19.408442"
+             style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+             xml:space="preserve"><tspan
+               style="stroke-width:0.26458332px"
+               y="30.233706"
+               x="19.408442"
+               id="tspan817"
+               sodipodi:role="line">Implementace GPU</tspan></text>
+        </g>
+        <text
+           xml:space="preserve"
+           style="font-style:normal;font-weight:normal;font-size:6.21484995px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.15537123px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           x="16.583447"
+           y="45.622711"
+           id="text852"><tspan
+             sodipodi:role="line"
+             id="tspan850"
+             x="16.583447"
+             y="45.622711"
+             style="stroke-width:0.15537123px">- implementace bufferů</tspan><tspan
+             sodipodi:role="line"
+             x="16.583447"
+             y="53.391273"
+             style="stroke-width:0.15537123px"
+             id="tspan854">- implementace vertex pullerů</tspan><tspan
+             sodipodi:role="line"
+             x="16.583447"
+             y="61.159836"
+             style="stroke-width:0.15537123px"
+             id="tspan856">- implementace programů</tspan><tspan
+             sodipodi:role="line"
+             x="16.583447"
+             y="68.928398"
+             style="stroke-width:0.15537123px"
+             id="tspan858">- implementace framebufferu</tspan><tspan
+             sodipodi:role="line"
+             x="16.583447"
+             y="76.69696"
+             style="stroke-width:0.15537123px"
+             id="tspan860">- implementace vykreslovacích funkcí</tspan></text>
+      </g>
+      <g
+         transform="translate(-48.108515,1.3229205)"
+         id="g937">
+        <g
+           id="g843"
+           transform="translate(55.940476,-24.946429)">
+          <rect
+             ry="0"
+             y="40.921127"
+             x="140.90144"
+             height="20.032738"
+             width="160.05127"
+             id="rect815-3"
+             style="opacity:1;fill:#ffeeaa;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0" />
+          <text
+             id="text823"
+             y="53.857216"
+             x="142.99902"
+             style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+             xml:space="preserve"><tspan
+               style="stroke-width:0.26458332px"
+               y="53.857216"
+               x="142.99902"
+               id="tspan821"
+               sodipodi:role="line">Implementace Phong Metody</tspan></text>
+        </g>
+        <text
+           xml:space="preserve"
+           style="font-style:normal;font-weight:normal;font-size:6.21484995px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.15537123px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           x="196.03847"
+           y="43.698494"
+           id="text852-6"><tspan
+             sodipodi:role="line"
+             x="196.03847"
+             y="43.698494"
+             style="stroke-width:0.15537123px"
+             id="tspan906">- implementace inicializace vykreslování</tspan><tspan
+             sodipodi:role="line"
+             x="196.03847"
+             y="51.467056"
+             style="stroke-width:0.15537123px"
+             id="tspan912">- implementace vertex a fragment shaderu</tspan><tspan
+             sodipodi:role="line"
+             x="196.03847"
+             y="59.235619"
+             style="stroke-width:0.15537123px"
+             id="tspan914">- implementace kreslení modelu</tspan><tspan
+             sodipodi:role="line"
+             x="196.03847"
+             y="67.004181"
+             style="stroke-width:0.15537123px"
+             id="tspan908" /></text>
+      </g>
+    </g>
+  </g>
+</svg>

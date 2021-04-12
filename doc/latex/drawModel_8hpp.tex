@@ -1,0 +1,104 @@
+\hypertarget{drawModel_8hpp}{}\doxysection{student/draw\+Model.hpp File Reference}
+\label{drawModel_8hpp}\index{student/drawModel.hpp@{student/drawModel.hpp}}
+
+
+This file contains function declarations for model rendering.  
+
+
+{\ttfamily \#include $<$student/fwd.\+hpp$>$}\newline
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{drawModel_8hpp_ac14f542e0c0210cb47b47abcfa2fc279}{draw\+Model}} (\mbox{\hyperlink{structGPUContext}{G\+P\+U\+Context}} \&ctx, \mbox{\hyperlink{structModel}{Model}} const \&model, glm\+::mat4 const \&proj, glm\+::mat4 const \&view, glm\+::vec3 const \&light, glm\+::vec3 const \&camera)
+\begin{DoxyCompactList}\small\item\em This function renders a model. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{drawModel_8hpp_af28c26a23a26d8bb27f8a24833037c3c}{draw\+Model\+\_\+vertex\+Shader}} (\mbox{\hyperlink{structOutVertex}{Out\+Vertex}} \&out\+Vertex, \mbox{\hyperlink{structInVertex}{In\+Vertex}} const \&in\+Vertex, \mbox{\hyperlink{structUniforms}{Uniforms}} const \&uniforms)
+\begin{DoxyCompactList}\small\item\em \mbox{[}draw\+Model\mbox{]} \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{drawModel_8hpp_a00d11e84945ed4f7699102c077328bd0}{draw\+Model\+\_\+fragment\+Shader}} (\mbox{\hyperlink{structOutFragment}{Out\+Fragment}} \&out\+Fragment, \mbox{\hyperlink{structInFragment}{In\+Fragment}} const \&in\+Fragment, \mbox{\hyperlink{structUniforms}{Uniforms}} const \&uniforms)
+\begin{DoxyCompactList}\small\item\em \mbox{[}draw\+Model\+\_\+vs\mbox{]} \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+This file contains function declarations for model rendering. 
+
+\begin{DoxyAuthor}{Author}
+Tomáš Milet, \href{mailto:imilet@fit.vutbr.cz}{\texttt{ imilet@fit.\+vutbr.\+cz}} 
+\end{DoxyAuthor}
+
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{drawModel_8hpp_ac14f542e0c0210cb47b47abcfa2fc279}\label{drawModel_8hpp_ac14f542e0c0210cb47b47abcfa2fc279}} 
+\index{drawModel.hpp@{drawModel.hpp}!drawModel@{drawModel}}
+\index{drawModel@{drawModel}!drawModel.hpp@{drawModel.hpp}}
+\doxysubsubsection{\texorpdfstring{drawModel()}{drawModel()}}
+{\footnotesize\ttfamily void draw\+Model (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structGPUContext}{G\+P\+U\+Context}} \&}]{ctx,  }\item[{\mbox{\hyperlink{structModel}{Model}} const \&}]{model,  }\item[{glm\+::mat4 const \&}]{proj,  }\item[{glm\+::mat4 const \&}]{view,  }\item[{glm\+::vec3 const \&}]{light,  }\item[{glm\+::vec3 const \&}]{camera }\end{DoxyParamCaption})}
+
+
+
+This function renders a model. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em ctx} & \mbox{\hyperlink{structGPUContext}{G\+P\+U\+Context}} \\
+\hline
+{\em model} & model structure \\
+\hline
+{\em proj} & projection matrix \\
+\hline
+{\em view} & view matrix \\
+\hline
+{\em light} & light position \\
+\hline
+{\em camera} & camera position (unused) \mbox{[}draw\+Model\mbox{]} \\
+\hline
+\end{DoxyParams}
+\begin{DoxyRefDesc}{Todo}
+\item[\mbox{\hyperlink{todo__todo000001}{Todo}}]Tato funkce vykreslí model.~\newline
+ Vaším úkolem je správně projít model a vykreslit ho pomocí funkce draw\+Triangles (nevolejte draw\+Triangles\+Impl, je to z důvodu testování). Bližší informace jsou uvedeny na hlavní stránce dokumentace. \end{DoxyRefDesc}
+\mbox{\Hypertarget{drawModel_8hpp_a00d11e84945ed4f7699102c077328bd0}\label{drawModel_8hpp_a00d11e84945ed4f7699102c077328bd0}} 
+\index{drawModel.hpp@{drawModel.hpp}!drawModel\_fragmentShader@{drawModel\_fragmentShader}}
+\index{drawModel\_fragmentShader@{drawModel\_fragmentShader}!drawModel.hpp@{drawModel.hpp}}
+\doxysubsubsection{\texorpdfstring{drawModel\_fragmentShader()}{drawModel\_fragmentShader()}}
+{\footnotesize\ttfamily void draw\+Model\+\_\+fragment\+Shader (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structOutFragment}{Out\+Fragment}} \&}]{out\+Fragment,  }\item[{\mbox{\hyperlink{structInFragment}{In\+Fragment}} const \&}]{in\+Fragment,  }\item[{\mbox{\hyperlink{structUniforms}{Uniforms}} const \&}]{uniforms }\end{DoxyParamCaption})}
+
+
+
+\mbox{[}draw\+Model\+\_\+vs\mbox{]} 
+
+This functionrepresents fragment shader of texture rendering method.
+
+
+\begin{DoxyParams}{Parameters}
+{\em out\+Fragment} & output fragment \\
+\hline
+{\em in\+Fragment} & input fragment \\
+\hline
+{\em uniforms} & uniform variables \mbox{[}draw\+Model\+\_\+fs\mbox{]} \\
+\hline
+\end{DoxyParams}
+\begin{DoxyRefDesc}{Todo}
+\item[\mbox{\hyperlink{todo__todo000003}{Todo}}]Tato funkce reprezentujte fragment shader.~\newline
+ Vaším úkolem je správně obarvit fragmenty a osvětlit je pomocí lambertova osvětlovacího modelu. Bližší informace jsou uvedeny na hlavní stránce dokumentace. \end{DoxyRefDesc}
+\mbox{\Hypertarget{drawModel_8hpp_af28c26a23a26d8bb27f8a24833037c3c}\label{drawModel_8hpp_af28c26a23a26d8bb27f8a24833037c3c}} 
+\index{drawModel.hpp@{drawModel.hpp}!drawModel\_vertexShader@{drawModel\_vertexShader}}
+\index{drawModel\_vertexShader@{drawModel\_vertexShader}!drawModel.hpp@{drawModel.hpp}}
+\doxysubsubsection{\texorpdfstring{drawModel\_vertexShader()}{drawModel\_vertexShader()}}
+{\footnotesize\ttfamily void draw\+Model\+\_\+vertex\+Shader (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structOutVertex}{Out\+Vertex}} \&}]{out\+Vertex,  }\item[{\mbox{\hyperlink{structInVertex}{In\+Vertex}} const \&}]{in\+Vertex,  }\item[{\mbox{\hyperlink{structUniforms}{Uniforms}} const \&}]{uniforms }\end{DoxyParamCaption})}
+
+
+
+\mbox{[}draw\+Model\mbox{]} 
+
+This function represents vertex shader of texture rendering method.
+
+
+\begin{DoxyParams}{Parameters}
+{\em out\+Vertex} & output vertex \\
+\hline
+{\em in\+Vertex} & input vertex \\
+\hline
+{\em uniforms} & uniform variables \mbox{[}draw\+Model\+\_\+vs\mbox{]} \\
+\hline
+\end{DoxyParams}
+\begin{DoxyRefDesc}{Todo}
+\item[\mbox{\hyperlink{todo__todo000002}{Todo}}]Tato funkce reprezentujte vertex shader.~\newline
+ Vaším úkolem je správně trasnformovat vrcholy modelu. Bližší informace jsou uvedeny na hlavní stránce dokumentace. \end{DoxyRefDesc}

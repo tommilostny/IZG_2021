@@ -1,0 +1,680 @@
+/**
+ * \mainpage Izg project.
+ *
+ * \section zadani Zadání projektu do předmětu IZG.
+ *
+ * \tableofcontents
+ *
+ * \image html resources/images/vystup.png
+ * \image html resources/images/teaser.svg
+ * \image html resources/images/output.png "Takto by měl vypadat výstup projektu"
+ *
+ * Vašim úkolem je naimplementovat jednoduchou grafickou kartu (gpu).
+ * A dále implementovat funkci pro vykreslení modelů.
+ * Všechny soubory, které se vás týkají jsou ve složce student/
+ * V souboru student/gpu.cpp implementujte funkci \ref drawTrianglesImpl - vykreslování pomocí vámi implementované grafické karty.
+ * V souboru student/drawModel.cpp implementujete funkce \ref drawModel, \ref drawModel_vertexShader a \ref drawModel_fragmentShader.
+ * Tyto funkce slouží pro vykreslení načteného souboru s modelem.
+ * Kromě toho se ve složce nachází ještě soubor student/fwd.hpp - ten obsahuje deklarace struktur a konstant.
+ *
+ * \section jakNaTo Jak na projekt?
+ *
+ * Projekt se může zdát z prvu obrovský s milioném souborů a všelijakých podivností.
+ * Tyto "podivnosti" ale nemusíte řešit.
+ * Vše, co se vás týká jsou v podstatě 2 soubory do kterých napíšete váš kód a jeden soubor s deklaracemi struktur pro referenci.
+ * Projekt okolo těchto souborů vypadá takto z mnoha důvodů (vytvoření okna, načítaní modelů, testování, ...).
+ * A není potřeba se jim zabývat (tedy pokud nechcete vidět vnitřnosti a jak celý projekt funguje funguje).
+ * Takže jak na to?<br>
+ * Vyzkoušejte...
+ * \code{.sh}
+ * # a mackejte "n" nebo "p" a ovladani mysi
+ * izgProject_windows.exe
+ * izgProject_windows.exe --method 10
+ * izgProject_windows.exe --method 10 --model resources\\models\\konfucius\\scene.gltf
+ * izgProject_windows.exe --method 10 --model resources\\models\\triss\\scene.gltf
+ * izgProject_windows.exe --method 10 --model resources\\models\\lara\\scene.gltf
+ * izgProject_windows.exe --method 10 --model resources\\models\\lara2\\scene.gltf
+ * izgProject_windows.exe --method 10 --model resources\\models\\nyra\\scene.gltf
+ * izgProject_windows.exe --method 10 --model resources\\models\\doom\\scene.gltf
+ * izgProject_windows.exe --method 10 --model resources\\models\\tf2_medic\\scene.gltf
+ * izgProject_windows.exe --method 10 --model resources\\models\\shanghai_city\\scene.gltf
+ *
+ * # a mackejte "n" nebo "p" a ovladani mysi
+ * ./izgProject_linux.bin 
+ * ./izgProject_linux.bin --method 10
+ * ./izgProject_linux.bin --method 10 --model resources/models/konfucius/scene.gltf
+ * ./izgProject_linux.bin --method 10 --model resources/models/triss/scene.gltf
+ * ./izgProject_linux.bin --method 10 --model resources/models/lara/scene.gltf
+ * ./izgProject_linux.bin --method 10 --model resources/models/lara2/scene.gltf
+ * ./izgProject_linux.bin --method 10 --model resources/models/nyra/scene.gltf
+ * ./izgProject_linux.bin --method 10 --model resources/models/doom/scene.gltf
+ * ./izgProject_linux.bin --method 10 --model resources/models/tf2_medic/scene.gltf
+ * ./izgProject_linux.bin --method 10 --model resources/models/shanghai_city/scene.gltf
+ * \endcode
+ * Jak je to složité? Můj kód pro drawTriangles má ~400 řádků a implementace drawModels a shaderů ~100 řádku. 500 řádků není moc...
+ * Není potřeba nic alokovat, pamět je již předchystaná. Takže pokud budete někde volat malloc, new a podobně, zamyslete se.
+ * Z C++ se nevyužívá skoro nic (jen union později, vector a knihovna glm, reference). Takže by to mělo jít napsat celkem v pohodě i pro C lidi.
+ * 
+ * <ol>
+ * <li> Vyzkoušet si přiložený zkompilovaný referenční projekt izgProject_linux.bin a izgProject_windows.exe. (mačkejte "n" nebo "p", když projekt pustíte, abyste přepínali zobrazované metody).
+ * <li> \ref sestaveni "Zprovoznit si překlad"
+ * <li> \ref spousteni "Zkusit si projekt pustit a podívat se naparametry příkazové řádky." a \ref ovladani "jak se aplikace ovládá"
+ * <li> V projektu jsou přítomy \ref testovani "akceptační testy", které vám řeknou, jestli jede správným směrem a taky vypisují napovědu.
+ * <li> Začít implementovat funkci \ref drawTrianglesImpl a kontrolovat váš postup podle přiložených testů.
+ * <li> Začít implementovat funkci \ref drawModel
+ * <li> Začít implementovat funkci \ref drawModel_vertexShader
+ * <li> Začít implementovat funkci \ref drawModel_fragmentShader
+ * <li> Ověřte si implementaci na merlinovi
+ * <li> \ref odevzdavani Odevzdejte
+ * <li> ???
+ * <li> profit
+ * </ol>
+ *
+ * Každý úkol má přiřazen akceptační test, takže si můžete snadno ověřit funkčnosti vaší implementace.
+ * <br>
+ * \section drawTrianglesImplSec Implementace funkce drawTrianglesImpl
+ * Funkce drawTrianglesImpl se nachází v student/gpu.cpp.
+ * Je to funkce, která by měla dokázat vykreslit trojúhelníky.
+ * \snippet student/gpu.cpp drawTrianglesImpl
+ * Vašim úkolem je ji postupně naprogramovat.
+ * Na jeden pokus ji nenaprogramujete, budete ji programovat postupně.
+ * Doporučuji si kousky funkce dávat do vlastních podfunkcí, ať máte kód přehledný.
+ *
+ * První věc, na co se asi ptáte: odkud bere trojúhelníky a kam je kreslí?
+ * Funkce bere 2 parametry: GPUContext ctx, uint32_t nofVertices.
+ * nofVertices je počet vrcholů trojúhelníků, které by ta funkce měla vykreslit.
+ * Tzn. 3 pro 1 trojúhelník, 12 pro 4 trojúhelníky, apod.
+ * Zajímavější parametr je ctx - GPUContext.<br>
+ * \snippet student/fwd.hpp GPUContext
+ * Co je to GPUContext? Tak je v projektu pojmenovaný stav virtuální grafické karty.
+ * Je to struktura, která obsahuje všechno nastavení, které je potřebné pro kreslení.
+ * Obsahuje plátno, kam se má kreslit (Frame), obsahuje data, ve kterých jsou uloženy trojúhelníky (VertexArray),
+ * obsahuje program (Program, vertex shader, fragment shader), který dané trojúhelníky vykreslí.<br>
+ * \image html resources/images/ctx_overview.svg "Přehled toho, co je v kontextu. VertexArray je něco jako vstup pro vykreslování, jsou v něm 'zakódované' trojúhelníky. Frame je výstupní obrázek, který se kreslí. A program je společně s vykreslovacím řetězcem transformace vstupu na výstup."  width=800
+ * Takže se jedná o stav, v jakém se grafická karta nachází před spuštěním kreslení.
+ * Funkce drawTrianglesImpl (dále jen drawTriangles) by se měla podívat do kontextu grafické karty a změnit jej.<br>
+ * Proces kreslení na grafické kartě probíhá v zobrazovacím řetězci.<br>
+ * <h3>gpu Grafická karta</h3>
+ * \image html resources/images/pipeline_overview.svg "Grafická karta je složena z paměti a zobrazovacího řetězce. Z paměti tečou vrcholy a trojúhelníky, které jsou vyrasterizovány zpět do paměti."  width=800
+ * <h3>Zobrazovací řetězec</h3>
+ * Zobrazovací řetězec je složen ze tří částí: vektorová část, rasterizace, rastrová část.
+ * \image html resources/images/pipeline_vector_raster.svg "Zobrazovací řetězec je složen z vektorové a rastrové části mezi kterými leží rasterizace."  width=800
+ * <h3>Vektorová část zobrazovací řetězec</h3>
+ * Cílem vektorové části je zpravovávat vektorovou grafiku: body, trojúhelníky.
+ * Většinou se tím myslí: čtení z paměti a sestavení vrcholů, vyvolání vertex shaderu nad každým vrcholem, sestavení trojúhelníků, ořez, perspektivní dělení a připravení pro rasterizaci (viewport transformace).
+ * Rasterizace rasterizuje připravené trojúhelníky a produkuje fragmenty (čtvercové úlomky trojúhelníku, které se nakonec zapíšou do framebufferu).
+ * Cílem rastrové části je obarvit tyto fragmenty pomocí fragment shaderu, odfiltrovat fragmenty, které jsou příliš daleko (depth test) a smíchat je s framebufferem (blending).<br>
+ * Ze začátku implementace funkce drawTriangles se budete zabývat pouze vektorovou částí - a to částí před vertex shaderem (včetně).
+ * \image html resources/images/pipeline_vector.svg "Vektorová část je složena z vertex assembly jednotky, vertex processoru a části za vertex shaderem."  width=800
+ * Vertex assembly jednota se stará o sestavování vrcholů. Vertex processor tyto vrcholy "prožene" uživatelem specifikovaným vertex shaderem.
+ * Část za vertex shaderem se stará o sestavení trojúhelníku, jeho ořezu a ztransformování pro rasterizaci.<br>
+ * <h3>Vertex Processor</h3>
+ * Úkolem vertex processoru je pouštět uživatelem specifikovaný vertex shader. Obvykle provádí transformace vrcholů pomocí transformačních matic.
+ * Vertex processor vykonává shader (kus programu), kterému se říká vertex shader.
+ * Vstupem vertex shaderu je vrchol \ref InVertex, výstupem je vrchol \ref OutVertex.
+ * Dalším (konstatním) vstupem vertex shaderu jsou uniformní proměnné \ref Uniforms, které jsou uložené v rámci shader programu.
+ * Pokud se uživatel rozhodne vykreslit 5 trojúhelníků je vertex shader spuštěn \f$ 5 \cdot 3 = 15 \f$.
+ * Jednotlivé spuštění (invokace) vertex shaderu vyžadují nové vstupní vrcholy a produkují nové výstupní vrcholy.
+ * To ve výsledku znamená, že se pro každou invokaci vertex shaderu spustí Vertex Assembly jednotka, která sestaví vstupní vrchol.
+ * \image html images/vertexShader.svg "Vizualizace vstupů a výstupů vertex procesoru. Ve vertex procesoru běží vertex shader, který obdrží vstupní vrchol, vyprodukuje výstupní vrchol a obdrží vstupní konstanty (uniformní proměnné)." width=800
+ *
+ * \subsection VertexAssembly 1. Úkol - naprogramovat vertex assembly jednotku a pouštění vertex shaderu
+ * První část, kdy se konečně dostanete k programování je vertex assembly jednota a pouštění vertex shaderu.
+ * Vážou se k ní testy 0. - 11.<br>
+ * \code{.sh}
+ * izgProject -c --test 11 --up-to-test
+ * \endcode
+ * Pseudokód může vypadat nějak takto:
+ * \snippet student/drawTrianglesExample.cpp drawTrianglesExample_before_vs
+ * \subsubsection vsInvocation 0. Vyvolávání vertex shaderu
+ * \code{.sh}
+ * izgProject -c --test 0
+ * \endcode
+ * V tomto testu musíte zavolat vertex shader tolikrát, kolik je zadáno funkci drawTriangles.
+ * Vertex shader se nachází ve struktuře Program
+ * \snippet student/fwd.hpp Program
+ * A program se nachází se struktuře GPUContext
+ * \snippet student/fwd.hpp GPUContext
+ * Což je parameter funkce \ref drawTrianglesImpl, kterou implementujete v souboru \ref student/gpu.cpp
+ * \snippet student/gpu.cpp drawTrianglesImpl
+ * Vertex shader je v podobě ukazatele na funkci. Na normální GPU se jedná o program (třeba v GLSL), který se kompiluje.
+ * V projektu je to normální C/C++ funkce, která je uložena v ukazateli na funkci.
+ * Vertex shader bere 3 parametry
+ * \snippet student/fwd.hpp VertexShader
+ * V tomto testu se neřeší, co dostane, ale měl by něco dostat.
+ * \subsubsection gl_VertexID 1. Číslování vrcholů
+ * \code{.sh}
+ * izgProject -c --test 1
+ * \endcode
+ * V tomto testu musíte správně číslovat vstupní vrcholy do vertex shaderu.
+ * Zatím bude stačit jim dát pořadové číslo.
+ * Vstupní vrchol se nachází ve struktuře InVertex
+ * \snippet student/fwd.hpp InVertex
+ * ve které je položka \ref InVertex::gl_VertexID, což je číslo vrcholu, kterou musíte správně nastavit.
+ * \subsubsection gl_VertexIDIndex32 2. Číslování vrcholů s 32bit indexováním.
+ * \code{.sh}
+ * izgProject -c --test 2
+ * \endcode
+ * V tomto testu musíte správně číslovat vstupní vrcholy, když je zapnuté indexování.<br>
+ * <b>Indexované kreslení</b> je způsob snížení redundance dat s využitím indexů na vrcholy.
+ * U neindexovaného kreslení je číslo vrcholu \ref InVertex::gl_VertexID rovno číslu invokace vertex shaderu.
+ * U indexovaného kreslení je číslo vrcholu \ref InVertex::gl_VertexID rovno hodnodě z indexačního bufferu.
+ * Hodnota z indexačního bufferu je vybrána číslem invokace vertex shaderu.
+ * <br>
+ * Indexační buffer může mít růzou velikost indexu - 8bit, 16bit a 32bit:
+ * \snippet student/fwd.hpp IndexType
+ * Pokud je zapnuto indexování, pak je číslo vrcholu dáno položkou v indexačním bufferu, kde je 
+ * položka (index) v bufferu vybrána na základě čísla invokace vertex shaderu.
+ * \image html images/drawElements.svg "Neindexované a indexované kreslení."
+ * Jestli je indexované kreslení zapnuto nebo vypnuto zjistítě ve struktuře VertexArray
+ * \snippet student/fwd.hpp VertexArray
+ * která je uložena ve struktuře GPUContext v parametru ctx.
+ * \ref VertexArray::indexBuffer je ukazatel na pamět indexů.
+ * Pokud je nastavený na nullptr, není indexování zapnuto.
+ * Pokud ukazuje na nějakou adresu, je indexování zapnuto a typ indexu je uložen v položce \ref VertexArray::indexType.
+ * \ref InVertex::gl_VertexID by měl být nastaven na hodnotu z indexačního bufferu.
+ * Pozor, index může mít různou velikost. Může být 32bit, 16bit, 8bit.
+ * \subsubsection gl_VertexIDIndex16 3. Číslování vrcholů s 16bit indexováním.
+ * \code{.sh}
+ * izgProject -c --test 3
+ * \endcode
+ * Podobné jako u \ref gl_VertexIDIndex32 "32bit indexování..."
+ * \subsubsection gl_VertexIDIndex8 4. Číslování vrcholů s 8bit indexováním.
+ * \code{.sh}
+ * izgProject -c --test 4
+ * \endcode
+ * Podobné jako u \ref gl_VertexIDIndex32 "32bit indexování..."
+ * \subsubsection VSUniforms 5. Vertex shader by měl dostat uniformy z programu.
+ * \code{.sh}
+ * izgProject -c --test 5
+ * \endcode
+ * Uniformní proměnné jsou konstanty z pohledu vertex shaderu.
+ * Jsou to data, která uživatel dodat svému vertex shaderu.
+ * Obvykle jsou to matice, pozice světla, barva materiálu...
+ * Jsou uloženy v položce prg struktury GPUContext.
+ * \snippet student/fwd.hpp GPUContext
+ * \snippet student/fwd.hpp Uniforms
+ * \snippet student/fwd.hpp Uniform
+ * \subsubsection VertexPuller_Att 6. Vertex Atributy - Vertex Assembly jednotka
+ * \code{.sh}
+ * izgProject -c --test 6
+ * \endcode
+ * V tomto testu musíte naprogramovat funkcionalitu Vertex Assembly jednotky.<br>
+ * <b>Vertex Assembly</b> (nebo taky Vertex Puller, Vertex Specification, ...) je zařízení na grafické kartě, které se stará o sestavení vrcholů.
+ * \image html resources/images/vertex.svg "Vrchol je struktura data. Ve struktuře jsou vertex attributy. Tyto mívají uživatelem specifikovaný význam (třeba pozice, normála, ...). Vertex Assembly sestavuje InVertex, který je poslán jako vstup do vertex shaderu. OutVertex je výstup vertex shaderu." width=800
+ * \image html resources/images/vertexInOut.svg "Jsou dva typy vrcholů. Ty, které sestavuje jednotka Vertex Assembly a vstupují do vertex shaderu. A ty, které jsou výstupem vertex shaderu." width=400
+ * Vrchol (\link InVertex \endlink) je složen z \link maxAttributes \endlink vertex attributů, každý může být různého typu (\link AttributeType \endlink (float, vec2, vec3, vec4) a čísla vrcholu \ref InVertex::gl_VertexID.<br>
+ * Struckura \ref InVertex vypadá takto:
+ * \snippet student/fwd.hpp InVertex
+ * Struktura \ref OutVertex vypadá takto:
+ * \snippet student/fwd.hpp OutVertex
+ * Obě struktury obsahují vertex atributy \ref Attribute
+ * \snippet student/fwd.hpp Attribute
+ * Vertex Assembly jednotka se řídí podle nastavení VertexArray struktury.
+ * \image html images/pullerSettings.svg "Nastavení pro Vertex Assembly jednotku - VertexArray." width=800
+ * Toto nastavení je uloženo ve struktuře VertexArray.
+ * \snippet student/fwd.hpp VertexArray
+ * Je složeno z nastavení pro indexování a nastavení pro vertex attributy.
+ * VertexAttrib je struktura obsahují nastavení, jak číst jeden Vertex Attribut.
+ * \snippet student/fwd.hpp VertexAttrib
+
+ * Vertex Assembly jednotka je složena z \link maxAttributes \endlink čtecích hlav, které sestavují jednotlivé vertex attributy.
+ * \link InVertex \endlink je složen z \link maxAttributes \endlink atributů, každý odpovídá jedné čtecí hlavě z Vertex Assembly jednotky.
+ * Čtecí hlava obsahuje nastavení - offset, stride, type a buffer.
+ * Pokud je čtecí hlava povolena (typ není empty), měla by zkopírovat data (o velikosti vertex atributu) z bufferu od daného offsetu, s krokem stride.
+ * Všechny velikosti jsou v bajtech.
+ * Krok se použije při čtení různých vrcholů: atributy by měly být čteny z adresy: buf_ptr + offset + stride*gl_VertexID
+ * <br>
+ * Na dalších dvou obrázcích je příklad stavu Vertex Assembly jednotky ve dvou (0. a 1.) invokaci vertex shaderu.
+ * \image html images/puller0.svg "příklad vertex pulleru při 0. invokací vertex shaderu. Vertex je složen z 3 vertex atributů (coord, normal, position). Čtecí hlavy začínají na daných offsetech a v daných bufferech."
+ * \image html images/puller1.svg "příklad vertex pulleru při 1. invokací vertex shaderu. Čtecí hlavy se posunuly o krok (stride)."
+ * 
+ * \subsubsection VertexPuller_Add 7. - 11. oveření správné funkcionality Vertex Assembly jednotky
+ * \code{.sh}
+ * izgProject -c --test 7
+ * izgProject -c --test 8
+ * izgProject -c --test 9
+ * izgProject -c --test 10
+ * izgProject -c --test 11
+ * \endcode
+ * Cílem těchto testů je otestovat, jestli jste Vertex Assembly jednotku naprogramovali správně.
+ * Po těchto úkolech byste měli mít hotovotou část před vertex shaderem.
+ *
+ *
+ *
+ * \subsection Raster 2. Úkol - naprogramovat Primitive Assembly jednotku, rasterizaci a pouštění fragment shaderu
+ * V tomto úkolu je potřeba rozšířit funkcionalitu funkce drawTriangles o schopnosti rasterizace.
+ * Cílem je naprogramovat části zobrazovacího řetězce, které jsou za vertex shaderem po rasterizaci a pouštění fragment shaderu (včetně).<br>
+ * Jedná se o testy 12. - 18.<br>
+ * Pseudokód může po upravení vypadat nějak takto:
+ * \snippet student/drawTrianglesExample.cpp drawTrianglesExample_after_vs
+ * Vertex Assembly jednotka chrlí vrcholy a vertex shader je zpracovává, transformuje.
+ * Je na čase z nich sestavit trojúhelníky a připravit je pro rasterizaci.
+ * Část za vertex shaderem je složena z několika částí.
+ * \image html resources/images/pipeline_after_vs.svg "Část za vertex shaderem je složena z několika jednotek. Je to jednotka sestavení primitiv (trojúhelníků), ořez (ten teď dělat nebudete), perspektivní dělení, viewport transformace. Po vektorové části následuje rasterizace a fragment shader" width=800
+ * \subsubsection PrimitiveAssembly Primitive Assembly
+ * Primitive Assembly je jednotka, která sestavuje trojúhelníky (mimo jiné).
+ * Trojúhelníku, úsečce, bodu se hromadně říká primitivum.
+ * V tomto projektu se používají pouze trojúhelníky.
+ * Primitive Assembly jednotka si počká na 3 po sobě jdoucí \ref OutVertex "výstupní vrcholy" z vertex shaderu a sestaví trojúhelník (struktura, která by měla obsahovat 3 výstupní vrcholy).
+ * Lze na to také nahlížet tak, že primitive assembly jednotka dostane příkaz vykreslit třeba 4 trojúhelníky. Jednotka tak spustí vertex shader 12x, který takto spustí 12x vertex assembly jednotku.
+ *
+ * \image html images/PrimitiveAssembly.svg "Vizualizace funkce primitive assembly jednotky. Primitive assembly jednotka sestaví trojúhelník ze 3 po sobě jdoucích výstupních vrcholů z vertex shaderu." width=800
+
+ * \subsubsection PerspectiveDivision Perspektivní dělení
+ * Perspektivní dělení následuje za clippingem (ten bude až později, teď není potřeba) a provádí převod z homogenních souřadnic na kartézské pomocí dělení w.
+ * \image html images/PerspectiveDivision.svg "Perspektivní dělení. Převod z clip-space do NDC (normalized device coordinates). Dělí se pomocí w. Při tomto dělení vzniknou normalizované souřadnice x,y a normalizovaná hloubka." width=500
+ *
+ * \subsubsection ViewPortTransformation Viewport transformace
+ * Viewport transformace provádí převod NDC (rozsah -1, +1) na rozlišení okna, aby se mohla provést rasterizace.
+ * \image html images/ViewportTransformation.svg "Vizualizace viewport transformace. Trojúhelníky jsou roztaženy na rozlišení obrazovky [width,height] do screen-space. Hloubka zůstane zachována v komponentě z." width=500
+ *
+ *
+ * \subsubsection Rasterization Rasterizace
+ * Rasterizace rasterizuje trojúhelník ve screen-space.
+ * Rasterizace produkuje fragmenty v případě, že <b>střed</b> pixelu leží uvnitř trojúhelníka.
+ * \image html resources/images/rasterization.svg "Rasterizace produkuje fragmenty. Pokud střed pixelu leží uvnitř trojúhelníka, vytvoří se fragment." width=800
+
+ * \subsubsection FragmentProcessor Fragment processor
+ * Fragment processor spouští fragment shader nad každým fragmentem.
+ * Data pro fragment shader jsou uložena ve struktuře \ref InFragment.
+ * Výstup fragment shaderu je výstupní fragment \ref OutFragment - barva.
+ * Další (konstantní) vstup fragment shaderu jsou uniformní proměnné.
+ * \image html images/FragmentShader.svg "Vizualizace vstupů a výstupů fragment shaderu. Fragment Shader se pouší nad každým vyrasterizovaným fragmentem." width=800
+ *
+ * \subsubsection raster_test 12. Ověření, že rasterizace produkuje fragmenty
+ * V tomto úkolu budete muset naprogramovat rasterizaci. Neobejdete se bez viewport transformace, rasterizace a zavolání fragment shaderu nad každným fragmentem.
+ * Tento test spočívá ve zkoušení vyrasterizování několika různých trojúhelníků a počítání, kolik se vyrasterizovalo fragmentů.<br>
+ * Testy pustíte:
+ * \code{.sh}
+ * izgProject -c --test 12
+ * \endcode
+
+ * \subsubsection fs_unif_test 13. Ověření, zda fragment shader obdržel uniformní proměnné z programu.
+ * Tento test ověřuje, že posíláte fragment shaderu uniformní proměnné z programu.
+ * \code{.sh}
+ * izgProject -c --test 13
+ * \endcode
+
+ * \subsubsection pd_test 14. Ověření, zda počítáte perspektivní dělení.
+ * Tento test ověřuje, zda provádíte perspektivní dělení.
+ * \code{.sh}
+ * izgProject -c --test 14
+ * \endcode
+
+ * \subsubsection fragCoord_test 15. Ověření, zda vyrasterizované fragmenty mají správnou 2D pozici.
+ * Tento test ověřuje, zda vyrasterizované fragmenty mají správnou 2D pozici \ref InFragment::gl_FragCoord.
+ * \code{.sh}
+ * izgProject -c --test 15
+ * \endcode
+ * Fragmenty mají souřadnice středů pixelů, kterým náleží. Tzn. fragment pro levý dolní pixel [0,0] má souřadnice gl_FragCoord.xy = [0.5,0.5]
+
+ * \subsubsection depthInterp_test 16. Ověření, zda se správně interpoluje hloubka fragmentů.
+ * Tento test ověřuje, zda vyrasterizované fragmenty mají správně interpolovanou hloubku.
+ * \code{.sh}
+ * izgProject -c --test 16
+ * \endcode
+ * Hloubka fragmentu je komponentě "z" položky \ref InFragment::gl_FragCoord. Pro její interpolaci potřebujete hloubky vrcholů trojúhelníka a barycentrické souřadnice fragmentu ve 2D.<br>
+ * Hloubky vrcholů najdete ve "z" komponentě položky \ref OutVertex::gl_Position gl_Position.z
+ * \snippet student/fwd.hpp OutVertex
+ * Hloubku zapisujte do komponenty "z" položky \ref InFragment::gl_FragCoord gl_FragCoord.z
+ * \snippet student/fwd.hpp InFragment
+ * Barycentrické souřadnice musíte spočítat podle obsahů:
+ * \image html resources/images/barycentric2D.svg "Barycentrické souřadnice ve 2D jsou spočítány jako poměry obsahů podtrojúhelníků." width=800
+ * Hlouba se interpoluje pomocí barycentrických souřadnic ve 2D:
+ * \f[\displaystyle fragment.gl\_FragCoord.z = vertex[0].gl\_Position.z\cdot \lambda_0^{2D} + vertex[1].gl\_Position.z\cdot \lambda_1^{2D} + vertex[2].gl\_Position.z\cdot \lambda_2^{2D}\f]
+ * Hloubka vrcholů vertex[].gl_Position.z vznikla při perspektivním dělení.
+
+ * \subsubsection attInterp_test 17., 18. Ověření, zda se správně interpolují vertex attributy.
+ * Tyto dva testy ověřují, jestli se správně interpolují vertex atributy do fragment atributů.
+ * \code{.sh}
+ * izgProject -c --test 17
+ * izgProject -c --test 18
+ * \endcode
+ * Vertex Attributy jsou se struktuře OutVertex
+ * \snippet student/fwd.hpp OutVertex
+ * A ze tří těchto vrcholů by se měly interpolovat atributy InFragment.
+ * \snippet student/fwd.hpp InFragment
+ * Interpolujte pouze ty atributy, které jsou poznačené v položce \ref Program::vs2fs!
+ * \snippet student/fwd.hpp Program
+ * Atributy je potřeba interpolovat pomocí perspektivně korektně upravených barycentrických souřadnic.
+ * Perspektivní korektní interpolace:
+ * \f[\displaystyle \frac{\frac{A_0 \cdot \lambda_0^{2D}}{h_0} + \frac{A_1 \cdot \lambda_1^{2D}}{h_1} + \frac{A_2 \cdot \lambda_2^{2D}}{h_2}}{\frac{\lambda_0^{2D}}{h_0}+\frac{\lambda_1^{2D}}{h_1}+\frac{\lambda_2^{2D}}{h_2}}\f]
+ * Kde \f$\lambda_0^{2D},\lambda_1^{2D},\lambda_2^{2D}\f$ jsou barycentrické koordináty ve 2D, \f$h_0,h_1,h_2\f$ je homogenní složka vrcholů a \f$A_0,A_1,A_2\f$ je atribut vrcholu.<br>
+ * Homogenní složka vrcholů je čtvrtá složka - tím čím se dělilo ve perspektivním dělení: h0 = vertex[0].gl_Position.w, h1 = vertex[1].gl_Position.w, ...
+ * <br>
+ * Barycentrické souřadnice je možné přepočítat na perspektivně koretní barycentrické souřadnice (je to jen přepsání zvorečku nahoře):
+ * \f[\displaystyle s = \frac{\lambda_0^{2D}}{h_0}+\frac{\lambda_1^{2D}}{h_1}+\frac{\lambda_2^{2D}}{h_2}\f]
+ * \f[\displaystyle \lambda_0 = \frac{\lambda_0^{2D}}{h_0\cdot s}\f]
+ * \f[\displaystyle \lambda_1 = \frac{\lambda_1^{2D}}{h_1\cdot s}\f]
+ * \f[\displaystyle \lambda_2 = \frac{\lambda_2^{2D}}{h_2\cdot s}\f]
+ * Ty je potom možné použít pro interpolaci atributů:
+ * \f[\displaystyle fragment.attribute = vertex[0].attribute\cdot \lambda_0 + vertex[1].attribute\cdot \lambda_1 + vertex[2].attribute\cdot \lambda_2\f]
+ * \image html resources/images/interpolation.svg "Rasterizace a interpolace vertex atributů. Vertex Atributy jsou interpolovány pomocí perspektivně korektních barycentrických souřadnic l0,l1,l2." width=800
+ *
+ *
+ *
+ * \subsection pfo 3. Úkol - naprogramovat per fragment operace a zápis do framebufferu.
+ * Rastrovou část zobrazovacího řetězce už byla částečně nakousnutá v předcházejícím úkolu (byl volán fragment shader).
+ * Rastrová část vypadá takto:
+ * \image html resources/images/pipeline_raster.svg "Rastrová část je složena z fragment shaderu a per fragment operací. Jsou dvě PFO operace: hloubkový test a blending. Fragmenty se poté přimíchají do framebufferu." width=800
+ * PFO operují s výstupním fragmentem fragment shaderu OutFragment
+ * \snippet student/fwd.hpp OutFragment
+ * Jeho hloubkou ("z" komponenta \ref InFragment::gl_FragCoord InFragment::gl_FragCoord.z)<br>
+ * A framebufferem Frame
+ * \snippet student/fwd.hpp Frame
+ * \subsubsection depthTest Hloubkový test
+ * Hloubkový test je jedna z per fragment operací.
+ * Stará se o zahazování fragmentů, které jsou hlouběji než to, co už se vyrasterizovalo.
+ * Využívá k tomu hloubkový buffer.
+ * Pokud je hloubka nového fragment menší, je jeho barva a hloubka zapsána do framebufferu.
+ * Dejte pozor na přetečení rozsahu \ref OutFragment::gl_FragColor. Před zápisem je nutné ořezat barvu do rozsahu <0,1> a pak převést na bajty [0-255].
+ * \image html images/PFO.svg "Vizualizace depth testu. Starý fragment (jeho barva a hloubka) je nahrazen pokud má nový fragment menší hloubku." width=800
+ *
+ * \subsubsection blending Blending
+ * Blending je PFO operace, která místo toho, aby barvu ve framebuffer přepsala novou barvou fragmentu, tak ji smíchá.
+ * Blending má v reálu mnoho nastavení, v projetku se používá pouze alpha blending.<br>
+ * Fragmenty mají barvu RGBA, kde A - \f$\alpha\f$ je tzv. neprůhlednost.<br>
+ * Pokud má nový fragment \f$\alpha=1\f$ - je absolutně neprůhledný - plně přepíše barvu ve framebufferu, když projde hloubkovým testem.<br>
+ * Pokud má nový fragment \f$\alpha=0\f$ - je absolutně průhledný - vůbec barvu ve framebuffer nezmění, i když projde hloubkovým testem.<br>
+ * Pokud má hodnotu někde mezi, tak se barva lineárně smíchá:
+ * \f[\displaystyle colorBuffer_{rgb} = colorBuffer_{rgb} \cdot (1-\alpha) + gl\_FragColor_{rgb} \cdot \alpha\f]
+ * Kde \f$\alpha=gl\_FragColor_a\f$
+ *
+ * \subsubsection blending Blending + Depth modifikace
+ * V tomto projektu je trošičku zmodifikován blending. Pokud má fragment příliš velkou průhlednost \f$\alpha \leq 0.5\f$, nebude modifikovat hloubu, a nechá takouvou, která tam byla.
+ * Tato modifikace v reálu obvykle neexistuje, je tady jako kompromis pro zlepšení kvality vykreslování.
+ * K per fragment operacím se vážou testy 19. - 23.
+ * \subsubsection pfo_test 19. - 23. Ověření, zda se správně fungují per fragment operace
+ * Tyto testy ověřují, jestli se správně provádí per fragment operace a zápis do framebufferu.
+ * \code{.sh}
+ * izgProject -c --test 19
+ * izgProject -c --test 20
+ * izgProject -c --test 21
+ * izgProject -c --test 22
+ * izgProject -c --test 23
+ * \endcode
+ * Upravený pseudokód funkce může vypadat takto:
+ * \snippet student/drawTrianglesExample.cpp drawTrianglesExample_pfo
+ *
+ * Pokud to všechno budete mít hotové, mělo by vám začít fungovat zobrazování. Jestli ano, gratuluji. Máte první část hotovou.<br>
+ *
+ * \subsection clip 4. Úkol - naprogramovat ořez trojúhelníků blízkou ořezovou rovinou
+ * Tento úkol opravuje vykreslování pokud je geometrie za pozorovatelem.<br>
+ * Tyto úkoly můžete přeskočit a vrátit se k nim později. Pokud se na geometrii budete dívat tak, že leží vždy před vámi, nepoznáte rozdíl.<br>
+ * Testy to jsou 24. - 27.
+ * \code{.sh}
+ * izgProject -c --test 24
+ * izgProject -c --test 25
+ * izgProject -c --test 26
+ * izgProject -c --test 27
+ * \endcode
+ * A upravený pseudokód může vypadat takto:
+ * \snippet student/drawTrianglesExample.cpp drawTrianglesExample
+ * \subsubsection Clipping
+ * Ořez (clipping) slouží pro odstranění částí trojúhelníků, které leží mimo pohledový jehlan.
+ * Nejdůležitější je však ořez near ořezovou rovinou pohledoveho jehlanu.
+ * Pokud by se neprovedl ořez pomocí near roviny, pak by se vrcholy nebo i celé trojúhělníky, které leží za středem projekce promítly při perspektivním dělení na průmětnu.
+ * Ořez se provádí v clip-space - po Primitive Assembly jednotce.
+ * Pro body, které leží uvnitř pohledového tělesa platí, že jejich souřadnice splňují následující nerovnice: \f$ -A_w \leq A_i \leq +A_w \f$, \f$i \in \left\{ x,y,z \right\}\f$.
+ * Těchto 6 nerovnic reprezentuje jednotlivé svěny pohledového jehlanu.
+ * Nerovnice \f$ -A_w \leq A_z \f$ reprezentuje podmínku pro near ořezovou rovinu.
+ * <br>
+ * Při ořezu trojúhelníku můžou nastat 4 případy, jsou znázorněny na následujícím obrázku:
+ *
+ * \image html resources/images/clip_variants.svg "4 varianty ořezu trojúhelníku pomocí near roviny. Počet vrcholů, které leží před ořezovou rovinou určuje typ ořezu. Při ořezu může vzniknout 0 až 2 nové trojúhelníky."
+ *
+ * Ořez trojúhelníku pomocí near roviny lze zjednodušit na ořez hran trojúhelníku.
+ * Bod na hraně (úsečce) trojúhelníku lze vyjádřit jako: \f$ \overrightarrow{X(t)} = \overrightarrow{A} + t \cdot (\overrightarrow{B}-\overrightarrow{A}) \f$, \f$t \in [0,1] \f$.
+ * \f$ \overrightarrow{A}, \overrightarrow{B} \f$ jsou vrcholy trojúhelníka, \f$ \overrightarrow{X(t)} \f$ je bod na hraně a parametr \f$ t \f$ udává posun na úsečce.
+ *
+ * \image html resources/images/clip.svg "Ořez trojúhelníku pomocí ořezu hran. Při ořezu hran vzniknou nové body, ze kterých jsou následně sestaveny nové trojúhelníky."
+ *
+ * Souřadnice bodu \f$ \overrightarrow{X(t)} \f$ lze určit při vypočtení parametru \f$ t \f$, při kterém přestane platit nerovnice pro near rovinu \f$ -X(t)_w \leq X(t)_z \f$.
+ * Takové místo nastává v situaci \f$ -X(t)_w = X(t)_z \f$.
+ * Po dosazení z rovnice úsečky lze vztah přepsat na: 
+ * \f{eqnarray*}{
+ * -X(t)_w &=& X(t)_z \\
+ * 0 &=& X(t)_w + X(t)_z \\
+ * 0 &=& A_w + t \cdot (B_w-A_w) + A_z + t \cdot (B_z - A_z) \\
+ * 0 &=& A_w + A_z + t \cdot (B_w-A_w+B_z-A_z) \\
+ * -A_w-A_z &=& t \cdot (B_w-A_w+B_z-A_z) \\
+ * \frac{-A_w - A_z}{B_w-A_w+B_z-A_z} &=& t\\
+ * \f}
+ *
+ * Pozice bodu \f$ \overrightarrow{X(t)} \f$ a hodnoty dalších vertex atributů lze vypočítat lineární kombinací hodnot z vrcholů úsečky pomocí parametru \f$ t \f$ následovně: \f$ \overrightarrow{X(t)} = \overrightarrow{A} + t \cdot (\overrightarrow{B}-\overrightarrow{A}) \f$.
+ *
+ * Celý vykreslovací řetězec je zobrazen na následujícím obrázku:
+ * \image html images/rendering_pipeline.svg "Simplified rendering pipeline"
+ * \image html images/examples.svg "příklady" width=1000
+ *
+ * \subsection drawModel_fce 5. Úkol - Vykreslování modelů - funkce drawModel
+ * Tento úkol už se neváže k zobrazovacímu řetězci, ale k jeho využívání.
+ * Cílem je naprogramovat zobrazování modelů načtených ze souboru na disku.
+ * Načítání modelů už je uděláno a předpřipraveno.
+ * Vaším úkolem je jen správně pustit kreslení.
+ * Budete editovat funkci \ref drawModel v souboru \ref student/drawModel.cpp.
+ * A vykreslení budete volat funkci drawTriangles (nikoliv drawTrianglesImpl - je to z důvodů testů).<br>
+ * Pro čtení z textur můžete použít funkci \ref read_texture.<br>
+ * Struktura modelu je:
+ * \image html resources/images/model.svg "Model je složen ze 3 polí: pole kořenů, pole meshu a pole textur. Kořen je uzel, který může mít potomky a může se odkazovat na mesh. Mesh obsahuje nastavení pro funkci drawTriangles a může se odkazovat na texturu."
+ * Vážou s k němu struktury Model, Node, Mesh, Texture.
+ * \snippet student/fwd.hpp Model
+ * \snippet student/fwd.hpp Node
+ * \snippet student/fwd.hpp Mesh
+ * \snippet student/fwd.hpp Texture
+ * Pro správné vykreslení, je potřeba projít kořeny modelu a vykreslit všechny nodes v pre order pořadí
+ * <a href="https://en.wikipedia.org/wiki/Tree_traversal">pre order</a>.
+ * Uzly se mohou odkazovat na mesh nebo nemusí (pokud je mesh=-1).<br>
+ * Mesh se může odkazovat na texturu nebo nemusí (pokud je diffuseTexture=-1).<br>
+ * V zásadě jde o to ke každému uzlu, ve kterém je odkaz na mesh zavolat funkci \ref drawTriangles kterou jste naprogramovali.<br>
+ * Je potřeba správně spočítat modelovou matici, která se buduje postupný pronásobováním.<br>
+ * Vykreslení jde napsat s výhodou rekurzivně.
+ * Pseudokód možné implementace:
+ * \snippet student/drawTrianglesExample.cpp drawModel
+ * Příklad, jak vykreslit geometrii, můžete najít v souboru examples/phongMethod.cpp
+ * \snippet examples/phongMethod.cpp PhongMethod
+ * K tomuto úkolu se vážou testy 28. a 35.
+ * \code{.sh}
+ * izgProject -c --test 28
+ * izgProject -c --test 29
+ * izgProject -c --test 30
+ * izgProject -c --test 31
+ * izgProject -c --test 32
+ * izgProject -c --test 33
+ * izgProject -c --test 34
+ * izgProject -c --test 35
+ * \endcode
+
+ * \subsection drawModel_vs 6. Úkol - Vykreslování modelů - vertex shader drawModel_vertexShader
+ * Funkce \ref drawModel_vertexShader reprezentuje vertex shader pro zobrazení modelů.<br>
+ * Její funkcionalita spočívá v transformování vrcholů pomocí matic.<br>
+ * Vstupem jsou vrcholy, které mají pozici (3f), normálu (3f) a texturovací souřadnice (2f) (atributy 0, 1 a 2).<br>
+ * Výstupem jsou vrcholy, které mají pozici (3f), normálu (3f) ve world space a atribut texturovacích souřadnic (2f) (atributy 0, 1 a 2).<br>
+ * Uniformní proměnné obsahují projectionView matici, modelovou matici, a inverzní transponovanou matici (uniformy 0,1,2).<br>
+ * Pozice by se měla pronásobit modelovou maticí m*glm::vec4(pos,1.f) aby se ztransformovala do world-space.<br>
+ * Normála by se měla pronásobit inverzní transponovanou modelovou maticí itm*glm::vec4(nor,0.f) aby se dostala do world-space.<br>
+ * Texturovací souřadnice se pouze přepošlou.<br>
+ * Pozice vrcholu gl_Position by měla být vypočtena pronásobením projectionView*model*pos.<br>
+ * K tomuto úkolu se váže tests 36.
+ * \code{.sh}
+ * izgProject -c --test 36
+ * \endcode
+
+ * \subsection drawModel_fs 7. Úkol - Vykreslování modelů - fragment shader drawMode_fragmentShader
+ * Funkce \ref drawModel_fragmentShader reprezentuje fragment shader pro zobrazení modelů.<br>
+ * Její funkcionalita spočívá v obarvování fragmentů a počítání lambertova osvětlovacího modelu.<br>
+ * Vstupem jsou fragmenty, které mají: pozici (3f), normálu (3f), texturovací souřadnice (2f) (atributy 0,1,2).<br>
+ * Výstupem je fragment s barvou a správnou \f$\alpha\f$.
+ * Uniformní proměnné obsahují pozici světla (3f), difuzní barvu (4f), a příznak textury (1f) (uniformy 3,5,6).<br>
+ * Dále uniformní proměnné obsahují difuzní texturu (4f) (uniform.textures[0]).<br>
+ * Vstupní normálu byste měli znormalizovat N=glm::normalize(nor).<br>
+ * Difuzní barva materiálu je buď uložena v uniformní proměnné 5 nebo v textuře.<br>
+ * Rozhoduje se podle toho, jestli je uniformní proměnná 6. > 0, pokud ano, využije se textura, když ne využije se uniformní proměnná 5.
+ * Spočítejte lambertův osvětlovací model s ambientním faktorem 0.2.
+ * K tomuto úkolu se vážou testy 37. a 38.
+ * \code{.sh}
+ * izgProject -c --test 37
+ * izgProject -c --test 38
+ * \endcode
+ *
+ *
+ * \section rozdeleni Rozdělení
+ *
+ * Projekt je rozdělen do několika podsložek:
+ *
+ * <b>student/</b> Tato složka obsahuje soubory, které využijete při
+ * implementaci projektu.
+ * Složka obsahuje soubory, které budete odevzávat a podpůrné hlavičkové soubory.
+ *
+ * <b>examples/</b> Tato složka obsahuje přiložené příklady, které využívají vámi vytvořené zobrazovadlo.
+ *
+ * <b>tests/</b> Tato složka obsahuje akceptační a performanční testy projektu.
+ * Akceptační testy jsou napsány s využitím knihovny catch.
+ * Testy jsou rozděleny do testovacích případů (TEST_CASE). Daný TEST_CASE
+ * testuje jednu podčást projektu.
+ *
+ * <b>libs/</b> Tato složka obsahuje pomocné knihovny
+ * <b>framework/</b> Tato složka obsahuje interní záležitosti projektu.
+ * Všechny soubory jsou napsány v C++, abyste se mohli podívat, jak to funguje.
+ *
+ * <b>doc/</b> Tato složka obsahuje doxygen dokumentaci projektu.
+ * Můžete ji přegenerovat pomocí příkazu doxygen spuštěného v root adresáři
+ * projektu.
+ *
+ * <b>resources/</b> Tato složka obsahuje modely a obrázky.
+ *
+ * <b>build/</b> Tady se čeká, že si budete sestavovat projekt, ale není to nutné, pokud víte, co děláte...
+ *
+ * Složka student/ obsahuje soubory, které se vás přímo týkají:
+ *
+ * \ref gpu.cpp obsahuje definici vykreslovací funkce \ref drawTrianglesImpl - tady odvedete nejvíce práce.
+ *
+ * \ref drawModel.cpp obsahuje definici funkce pro vykreslení modelu \ref drawModel a vertex a fragment shaderu \ref drawModel_vertexShader \ref drawModel_fragmentShader - toto máte taky naprogramovat.
+ *
+ * \ref fwd.hpp obsahuje definice typů a konstanty - projděte si.
+ *
+ * Projekt je postaven nad filozofií OpenGL/Vulkan.
+ *
+ * \section sestaveni Sestavení
+ *
+ * Projekt byl testován na Ubuntu 20.04, Visual Studio 2017, 2019.
+ * Projekt vyžaduje 64 bitové sestavení.
+ * Projekt využívá build systém <a href="https://cmake.org/">CMAKE</a>.
+ * CMake je program, který na základně konfiguračních souborů "CMakeLists.txt"
+ * vytvoří "makefile" v daném vývojovém prostředí.
+ * Dokáže generovat makefile pro Linux, mingw, solution file pro Microsoft
+ * Visual Studio, a další.<br>
+ * Postup Linux:
+ * \code{.sh}
+ * # stáhnout projekt
+ * unzip izgProject.zip -d izgProject
+ * cd izgProject/build
+ * cmake ..
+ * make -j8
+ * ./izgProject
+ * ./izgProject -h
+ * \endcode
+ * Posup na Windows:
+ * -# stáhnout projekt
+ * -# rozbalit projekt
+ * -# jděte do složky build/ 
+ * -# ve složce build pusťte cmake-gui ..
+ * -# pokud nevíte jak, tak pusťte cmake-gui a nastavte "Where is the source code:" na složku s projektem (obsahuje CMakeLists.txt)
+ * -# a "Where to build the binaries: " na složku build
+ * -# configure
+ * -# generate
+ * -# Otevřete vygenerovnou Microsoft Visual Studio Solution soubor.
+ *
+ * \section spousteni Spouštění
+ *
+ * Projekt je možné po úspěšném přeložení pustit přes aplikaci
+ * <b>izgProject</b>.
+ * Projekt akceptuje několik argumentů příkazové řádky, pro jejich výpis použijte parametr <b> -h </b>
+ * - <b>-c</b> spustí akceptační testy.
+ * - <b>-c -g CESTA_NEKAM/izgProject/resources/images/output.png</b> spustí akceptační cesty (pouze pokud jste si někam nešikovně přesunuli soubory...)
+ * - <b>-p</b> spustí performanční test. (vhodné až pokud aplikaci zkompilujete v RELEASE)
+ * Vyzkoušejte si
+ * \code{.sh}
+ * izgProject -i
+ * \endcode
+ *
+ * \section ovladani Ovládání
+ * Program se ovládá pomocí myši a klávesnice:
+ * - stisknuté levé tlačítko myši + pohyb myší - rotace kamery
+ * - stisknuté pravé tlačítko myši + pohyb myší - přiblížení kamery
+ * - stiknuté prostření tlačítko myši + pohyb myší - posun kamery do boků
+ * - "n"   - přepne na další scénu/metodu
+ * - "p"   - přepne na předcházející scénu/metodu
+ * - "esc" - konec
+ *
+ * \section testovani Testování
+ * Vaši implementaci si můžete ověřit sadou vestavěných akceptačních testů.
+ * Když aplikaci pustíte s parametrem "-c", pustí se akceptační testy, které ověřují funkčnost vaší implementace.
+ * \code{.sh}
+ * ./izgProject -c
+ * \endcode
+ * Pokud není nějaký test splněn, vypíše se k němu komentář s informacemi, co je špatně.
+ * Testy jsou seřazeny a měly by se plnit postupně.
+ * Pokud chcete pustit jeden konrétní test (třeba 13.), pusťte aplikaci s parametry "-c --test 13".
+ * \code{.sh}
+ * ./izgProject -c --test 13
+ * \endcode
+ * Pokud chcete pustit všechny testy až po jeden konkrétní (třeba 5.), pusťte aplikaci s parametry "-c --up-to-test --test 5".
+ * \code{.sh}
+ * ./izgProject -c --test 5 --up-to-test
+ * \endcode
+ * To je užitečné, když implementujete sekci, a chcete vědět, jestli jste něco zpětně nerozbili.<br>
+ * Na konci výpisu testů se vám vypíše bodové hodnocení.
+ *
+ * \section odevzdavani Odevzdávání
+ *
+ * Před odevzdáváním si zkontrolujte, že váš projekt lze přeložit na merlinovi.<br>
+ * Pro ověření kompilace nemusíte na merlin kopírovat složku resources (je velká).<br>
+ * Pokud si chcete na merlinovi ověřit i akceptační testy stačí zkopírovat jen resources/images/output.png a resources/models/china.glb.<br>
+ * Zkopirujte projekt na merlin a spusťte skript: <b>./merlinCompilationTest.sh</b>.<br><br>
+ * Odevzdávejte pouze soubory gpu.cpp, drawModel.cpp
+ * Soubory zabalte do archivu proj.zip. Po rozbalení archivu
+ * se <b>NESMÍ</b> vytvořit žádná složka. Příkazy pro ověření na Linuxu: zip
+ * proj.zip gpu.cpp drawModel.cpp, unzip proj.zip.
+ * Studenti pracují na řešení projektu samostatně a každý odevzdá své vlastní
+ * řešení.
+ * Poraďte si, ale řešení vypracujte samostatně!
+ * \section chyby Časté chyby, které nedělejte
+ * <ol>
+ * <li> student se mě nezeptá pokud neví, jak něco vyřešit. Ptejte se. Odpovím, pokud budu vědět.
+ * <li> student se mě nezeptá pokud neví, jak něco vyřešit. Ptejte se. Odpovím, pokud budu vědět.
+ * <li> student se mě nezeptá pokud neví, jak něco vyřešit. Ptejte se. Odpovím, pokud budu vědět.
+ * <li> student neodevzdá koretně zabalené soubory.
+ * <li> student si inkluduje nějake soubory z windows, třeba windows.h - to nedělejte, překlad musí fungovat na merlinovi.
+ * <li> min, max funkce si berete odnikud - vyzkoušejte, jestli vám jde překlad na merlinovi, nebo použijte glm::min, glm::max
+ * <li> špatně pojmenovaný archiv při odevzdávání
+ * <li> soubory navíc, nebo přejmenované soubory v odevzdaném archivu
+ * <li> memory corruption, přistupujete do paměti, kam nemáte (na to je valgrind)
+ * <li> student odevzdá soubory v nějakém exotickém archivu, rar, tar.gz, 7z, iso...
+ * <li> student zkouší projekt na systemu, který nebyl ověřen (ověřeno to bylo na Linuxu a Windows).
+ * <li> VirtualBox s Ubuntu je +- možný, ale může se narazit na SDL chybu no video device (asi je potřeba nainstalovat SDL: sudo apt install libsdl2-dev).
+ * <li> Nějaký problém se CMake a zprovoznením překladu na Windows (většinou je problém s cestami, zkuste dát projekt někan do jednoduché složky C:\).
+ * </ol>
+ *
+ * \section hodnoceni Hodnocení
+ *
+ * Množství bodů, které dostanete, je odvozeno od množství splněných
+ * akceptačních testů a podle toho, zda vám to kreslí správně (s jistou
+ * tolerancí kvůli nepřesnosti floatové aritmetiky).
+ * Automatické opravování má k dispozici větší množství akceptačních testů
+ * (kdyby někoho napadlo je obejít).
+ * Pokud vám aplikace spadne v rámci testů, dostanete 0 bodů.
+ * Pokud aplikace nepůjde přeložit, dostanete 0 bodů.
+ *
+ * \section soutez Soutěž
+ *
+ * Pokud váš projekt obdrží plný počet bodů, bude zařazen do soutěže o
+ * nejrychlejší implementaci zobrazovacího řetězce.
+ * Můžete přeimplementovat cokoliv v odevzdávaných souborech pokud to projde
+ * akceptačními testy a kompilací.
+ *
+ * \section zaver Závěrem
+ * Ať se dílo daří a ať vás grafika alespoň trochu baví!
+ * V případě potřeby se nebojte zeptat (napište přímo vedoucímu projektu imilet@fit.vutbr.cz nebojte se napsat, nekoušu (a teď při korona viru ani nemůžu)).
+ */

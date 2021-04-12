@@ -1,0 +1,193 @@
+\hypertarget{fwd_8hpp}{}\doxysection{student/fwd.hpp File Reference}
+\label{fwd_8hpp}\index{student/fwd.hpp@{student/fwd.hpp}}
+
+
+This file contains forward declarations and constants.  
+
+
+{\ttfamily \#include $<$glm/glm.\+hpp$>$}\newline
+{\ttfamily \#include $<$cstdint$>$}\newline
+{\ttfamily \#include $<$vector$>$}\newline
+\doxysubsection*{Data Structures}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{structTexture}{Texture}}
+\begin{DoxyCompactList}\small\item\em This struct represent a texture. \end{DoxyCompactList}\item 
+union \mbox{\hyperlink{unionAttribute}{Attribute}}
+\begin{DoxyCompactList}\small\item\em \mbox{[}Attribute\+Type\mbox{]} \end{DoxyCompactList}\item 
+struct \mbox{\hyperlink{structInVertex}{In\+Vertex}}
+\begin{DoxyCompactList}\small\item\em \mbox{[}\mbox{\hyperlink{unionAttribute}{Attribute}}\mbox{]} \end{DoxyCompactList}\item 
+struct \mbox{\hyperlink{structOutVertex}{Out\+Vertex}}
+\begin{DoxyCompactList}\small\item\em \mbox{[}\mbox{\hyperlink{structInVertex}{In\+Vertex}}\mbox{]} \end{DoxyCompactList}\item 
+struct \mbox{\hyperlink{structInFragment}{In\+Fragment}}
+\begin{DoxyCompactList}\small\item\em \mbox{[}\mbox{\hyperlink{structOutVertex}{Out\+Vertex}}\mbox{]} \end{DoxyCompactList}\item 
+struct \mbox{\hyperlink{structOutFragment}{Out\+Fragment}}
+\begin{DoxyCompactList}\small\item\em \mbox{[}\mbox{\hyperlink{structInFragment}{In\+Fragment}}\mbox{]} \end{DoxyCompactList}\item 
+union \mbox{\hyperlink{unionUniform}{Uniform}}
+\begin{DoxyCompactList}\small\item\em \mbox{[}\mbox{\hyperlink{structOutFragment}{Out\+Fragment}}\mbox{]} \end{DoxyCompactList}\item 
+struct \mbox{\hyperlink{structUniforms}{Uniforms}}
+\begin{DoxyCompactList}\small\item\em \mbox{[}\mbox{\hyperlink{unionUniform}{Uniform}}\mbox{]} \end{DoxyCompactList}\item 
+struct \mbox{\hyperlink{structVertexAttrib}{Vertex\+Attrib}}
+\begin{DoxyCompactList}\small\item\em \mbox{[}Fragment\+Shader\mbox{]} \end{DoxyCompactList}\item 
+struct \mbox{\hyperlink{structVertexArray}{Vertex\+Array}}
+\begin{DoxyCompactList}\small\item\em \mbox{[}\mbox{\hyperlink{structVertexAttrib}{Vertex\+Attrib}}\mbox{]} \end{DoxyCompactList}\item 
+struct \mbox{\hyperlink{structProgram}{Program}}
+\begin{DoxyCompactList}\small\item\em \mbox{[}\mbox{\hyperlink{structVertexArray}{Vertex\+Array}}\mbox{]} \end{DoxyCompactList}\item 
+struct \mbox{\hyperlink{structFrame}{Frame}}
+\begin{DoxyCompactList}\small\item\em \mbox{[}\mbox{\hyperlink{structProgram}{Program}}\mbox{]} \end{DoxyCompactList}\item 
+struct \mbox{\hyperlink{structGPUContext}{G\+P\+U\+Context}}
+\begin{DoxyCompactList}\small\item\em \mbox{[}\mbox{\hyperlink{structFrame}{Frame}}\mbox{]} \end{DoxyCompactList}\item 
+struct \mbox{\hyperlink{structMesh}{Mesh}}
+\begin{DoxyCompactList}\small\item\em \mbox{[}\mbox{\hyperlink{structGPUContext}{G\+P\+U\+Context}}\mbox{]} \end{DoxyCompactList}\item 
+struct \mbox{\hyperlink{structNode}{Node}}
+\begin{DoxyCompactList}\small\item\em \mbox{[}\mbox{\hyperlink{structMesh}{Mesh}}\mbox{]} \end{DoxyCompactList}\item 
+struct \mbox{\hyperlink{structModel}{Model}}
+\begin{DoxyCompactList}\small\item\em \mbox{[}\mbox{\hyperlink{structNode}{Node}}\mbox{]} \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Typedefs}
+\begin{DoxyCompactItemize}
+\item 
+using \mbox{\hyperlink{fwd_8hpp_af647cdb302d7e978c6a0da41a0a92725}{Vertex\+Shader}} = void($\ast$)(\mbox{\hyperlink{structOutVertex}{Out\+Vertex}} \&out\+Vertex, \mbox{\hyperlink{structInVertex}{In\+Vertex}} const  \&in\+Vertex, \mbox{\hyperlink{structUniforms}{Uniforms}} const  \&uniforms)
+\begin{DoxyCompactList}\small\item\em \mbox{[}Index\+Type\mbox{]} \end{DoxyCompactList}\item 
+using \mbox{\hyperlink{fwd_8hpp_a52f1704ae0b129e49fe1902e05319ad6}{Fragment\+Shader}} = void($\ast$)(\mbox{\hyperlink{structOutFragment}{Out\+Fragment}} \&out\+Fragment, \mbox{\hyperlink{structInFragment}{In\+Fragment}} const  \&in\+Fragment, \mbox{\hyperlink{structUniforms}{Uniforms}} const  \&uniforms)
+\begin{DoxyCompactList}\small\item\em \mbox{[}Vertex\+Shader\mbox{]} \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Enumerations}
+\begin{DoxyCompactItemize}
+\item 
+enum \mbox{\hyperlink{fwd_8hpp_a349a9cde14be8097df865ba0469c0ab2}{Attribute\+Type}} \{ \newline
+\mbox{\hyperlink{fwd_8hpp_a349a9cde14be8097df865ba0469c0ab2aba2b45bdc11e2a4a6e86aab2ac693cbb}{Attribute\+Type\+::\+E\+M\+P\+TY}} = 0, 
+\mbox{\hyperlink{fwd_8hpp_a349a9cde14be8097df865ba0469c0ab2ae738c26bf4ce1037fa81b039a915cbf6}{Attribute\+Type\+::\+F\+L\+O\+AT}} = 1, 
+\mbox{\hyperlink{fwd_8hpp_a349a9cde14be8097df865ba0469c0ab2a9bd71a29dd44a2e0252b56ce5c6d251a}{Attribute\+Type\+::\+V\+E\+C2}} = 2, 
+\mbox{\hyperlink{fwd_8hpp_a349a9cde14be8097df865ba0469c0ab2aa7c116def9f212182aa52ab1e936d77d}{Attribute\+Type\+::\+V\+E\+C3}} = 3, 
+\newline
+\mbox{\hyperlink{fwd_8hpp_a349a9cde14be8097df865ba0469c0ab2aee190f7a0572504036effa0134dc5d88}{Attribute\+Type\+::\+V\+E\+C4}} = 4
+ \}
+\begin{DoxyCompactList}\small\item\em \mbox{[}\mbox{\hyperlink{structTexture}{Texture}}\mbox{]} \end{DoxyCompactList}\item 
+enum \mbox{\hyperlink{fwd_8hpp_a2bfb0a0ff1c379a8b4e8f9d24fdd4839}{Index\+Type}} \{ \mbox{\hyperlink{fwd_8hpp_a2bfb0a0ff1c379a8b4e8f9d24fdd4839aecfc091ed2a607335524c8389cfa41b5}{Index\+Type\+::\+U\+I\+N\+T8}} = 1, 
+\mbox{\hyperlink{fwd_8hpp_a2bfb0a0ff1c379a8b4e8f9d24fdd4839a48d8f1a723d44ff4a87db1bb6c551c62}{Index\+Type\+::\+U\+I\+N\+T16}} = 2, 
+\mbox{\hyperlink{fwd_8hpp_a2bfb0a0ff1c379a8b4e8f9d24fdd4839a17266551181f69a1b4a3ad5c9e270afc}{Index\+Type\+::\+U\+I\+N\+T32}} = 4
+ \}
+\begin{DoxyCompactList}\small\item\em \mbox{[}\mbox{\hyperlink{structUniforms}{Uniforms}}\mbox{]} \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{fwd_8hpp_a4a3d1b76496eeb849f86584b59091f7a}\label{fwd_8hpp_a4a3d1b76496eeb849f86584b59091f7a}} 
+const uint32\+\_\+t \mbox{\hyperlink{fwd_8hpp_a4a3d1b76496eeb849f86584b59091f7a}{max\+Attributes}} = 16
+\begin{DoxyCompactList}\small\item\em maximum number of vertex/fragment attributes \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{fwd_8hpp_a7d487fa31fd72d7d5b6d952880a2f137}\label{fwd_8hpp_a7d487fa31fd72d7d5b6d952880a2f137}} 
+const uint32\+\_\+t \mbox{\hyperlink{fwd_8hpp_a7d487fa31fd72d7d5b6d952880a2f137}{max\+Uniforms}} = 16
+\begin{DoxyCompactList}\small\item\em maximum number of uniform variables \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{fwd_8hpp_a4c2eb5328acb9e61d6477a9bdba62dac}\label{fwd_8hpp_a4c2eb5328acb9e61d6477a9bdba62dac}} 
+const uint32\+\_\+t \mbox{\hyperlink{fwd_8hpp_a4c2eb5328acb9e61d6477a9bdba62dac}{max\+Textures}} = 8
+\begin{DoxyCompactList}\small\item\em maximum number of textures \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+This file contains forward declarations and constants. 
+
+\begin{DoxyAuthor}{Author}
+Tomáš Milet, \href{mailto:imilet@fit.vutbr.cz}{\texttt{ imilet@fit.\+vutbr.\+cz}} 
+\end{DoxyAuthor}
+
+
+\doxysubsection{Typedef Documentation}
+\mbox{\Hypertarget{fwd_8hpp_a52f1704ae0b129e49fe1902e05319ad6}\label{fwd_8hpp_a52f1704ae0b129e49fe1902e05319ad6}} 
+\index{fwd.hpp@{fwd.hpp}!FragmentShader@{FragmentShader}}
+\index{FragmentShader@{FragmentShader}!fwd.hpp@{fwd.hpp}}
+\doxysubsubsection{\texorpdfstring{FragmentShader}{FragmentShader}}
+{\footnotesize\ttfamily using \mbox{\hyperlink{fwd_8hpp_a52f1704ae0b129e49fe1902e05319ad6}{Fragment\+Shader}} =  void($\ast$)( \mbox{\hyperlink{structOutFragment}{Out\+Fragment}} \&out\+Fragment, \mbox{\hyperlink{structInFragment}{In\+Fragment}} const\&in\+Fragment , \mbox{\hyperlink{structUniforms}{Uniforms}} const\&uniforms )}
+
+
+
+\mbox{[}Vertex\+Shader\mbox{]} 
+
+Function type for fragment shader
+
+
+\begin{DoxyParams}{Parameters}
+{\em out\+Fragment} & output fragment \\
+\hline
+{\em in\+Fragment} & input fragment \\
+\hline
+{\em uniforms} & uniform variables \mbox{[}Fragment\+Shader\mbox{]} \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{fwd_8hpp_af647cdb302d7e978c6a0da41a0a92725}\label{fwd_8hpp_af647cdb302d7e978c6a0da41a0a92725}} 
+\index{fwd.hpp@{fwd.hpp}!VertexShader@{VertexShader}}
+\index{VertexShader@{VertexShader}!fwd.hpp@{fwd.hpp}}
+\doxysubsubsection{\texorpdfstring{VertexShader}{VertexShader}}
+{\footnotesize\ttfamily using \mbox{\hyperlink{fwd_8hpp_af647cdb302d7e978c6a0da41a0a92725}{Vertex\+Shader}} =  void($\ast$)( \mbox{\hyperlink{structOutVertex}{Out\+Vertex}} \&out\+Vertex, \mbox{\hyperlink{structInVertex}{In\+Vertex}} const\&in\+Vertex , \mbox{\hyperlink{structUniforms}{Uniforms}} const\&uniforms )}
+
+
+
+\mbox{[}Index\+Type\mbox{]} 
+
+Function type for vertex shader
+
+
+\begin{DoxyParams}{Parameters}
+{\em out\+Vertex} & output vertex \\
+\hline
+{\em in\+Vertex} & input vertex \\
+\hline
+{\em uniforms} & uniform variables \mbox{[}Vertex\+Shader\mbox{]} \\
+\hline
+\end{DoxyParams}
+
+
+\doxysubsection{Enumeration Type Documentation}
+\mbox{\Hypertarget{fwd_8hpp_a349a9cde14be8097df865ba0469c0ab2}\label{fwd_8hpp_a349a9cde14be8097df865ba0469c0ab2}} 
+\index{fwd.hpp@{fwd.hpp}!AttributeType@{AttributeType}}
+\index{AttributeType@{AttributeType}!fwd.hpp@{fwd.hpp}}
+\doxysubsubsection{\texorpdfstring{AttributeType}{AttributeType}}
+{\footnotesize\ttfamily enum \mbox{\hyperlink{fwd_8hpp_a349a9cde14be8097df865ba0469c0ab2}{Attribute\+Type}}\hspace{0.3cm}{\ttfamily [strong]}}
+
+
+
+\mbox{[}\mbox{\hyperlink{structTexture}{Texture}}\mbox{]} 
+
+This enum represents vertex/fragment attribute type. \mbox{[}Attribute\+Type\mbox{]} \begin{DoxyEnumFields}{Enumerator}
+\raisebox{\heightof{T}}[0pt][0pt]{\index{EMPTY@{EMPTY}!fwd.hpp@{fwd.hpp}}\index{fwd.hpp@{fwd.hpp}!EMPTY@{EMPTY}}}\mbox{\Hypertarget{fwd_8hpp_a349a9cde14be8097df865ba0469c0ab2aba2b45bdc11e2a4a6e86aab2ac693cbb}\label{fwd_8hpp_a349a9cde14be8097df865ba0469c0ab2aba2b45bdc11e2a4a6e86aab2ac693cbb}} 
+E\+M\+P\+TY&disabled attribute \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{FLOAT@{FLOAT}!fwd.hpp@{fwd.hpp}}\index{fwd.hpp@{fwd.hpp}!FLOAT@{FLOAT}}}\mbox{\Hypertarget{fwd_8hpp_a349a9cde14be8097df865ba0469c0ab2ae738c26bf4ce1037fa81b039a915cbf6}\label{fwd_8hpp_a349a9cde14be8097df865ba0469c0ab2ae738c26bf4ce1037fa81b039a915cbf6}} 
+F\+L\+O\+AT&1x 32-\/bit float \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{VEC2@{VEC2}!fwd.hpp@{fwd.hpp}}\index{fwd.hpp@{fwd.hpp}!VEC2@{VEC2}}}\mbox{\Hypertarget{fwd_8hpp_a349a9cde14be8097df865ba0469c0ab2a9bd71a29dd44a2e0252b56ce5c6d251a}\label{fwd_8hpp_a349a9cde14be8097df865ba0469c0ab2a9bd71a29dd44a2e0252b56ce5c6d251a}} 
+V\+E\+C2&2x 32-\/bit floats \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{VEC3@{VEC3}!fwd.hpp@{fwd.hpp}}\index{fwd.hpp@{fwd.hpp}!VEC3@{VEC3}}}\mbox{\Hypertarget{fwd_8hpp_a349a9cde14be8097df865ba0469c0ab2aa7c116def9f212182aa52ab1e936d77d}\label{fwd_8hpp_a349a9cde14be8097df865ba0469c0ab2aa7c116def9f212182aa52ab1e936d77d}} 
+V\+E\+C3&3x 32-\/bit floats \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{VEC4@{VEC4}!fwd.hpp@{fwd.hpp}}\index{fwd.hpp@{fwd.hpp}!VEC4@{VEC4}}}\mbox{\Hypertarget{fwd_8hpp_a349a9cde14be8097df865ba0469c0ab2aee190f7a0572504036effa0134dc5d88}\label{fwd_8hpp_a349a9cde14be8097df865ba0469c0ab2aee190f7a0572504036effa0134dc5d88}} 
+V\+E\+C4&4x 32-\/bit floats \\
+\hline
+
+\end{DoxyEnumFields}
+\mbox{\Hypertarget{fwd_8hpp_a2bfb0a0ff1c379a8b4e8f9d24fdd4839}\label{fwd_8hpp_a2bfb0a0ff1c379a8b4e8f9d24fdd4839}} 
+\index{fwd.hpp@{fwd.hpp}!IndexType@{IndexType}}
+\index{IndexType@{IndexType}!fwd.hpp@{fwd.hpp}}
+\doxysubsubsection{\texorpdfstring{IndexType}{IndexType}}
+{\footnotesize\ttfamily enum \mbox{\hyperlink{fwd_8hpp_a2bfb0a0ff1c379a8b4e8f9d24fdd4839}{Index\+Type}}\hspace{0.3cm}{\ttfamily [strong]}}
+
+
+
+\mbox{[}\mbox{\hyperlink{structUniforms}{Uniforms}}\mbox{]} 
+
+This enum represents index type \mbox{[}Index\+Type\mbox{]} \begin{DoxyEnumFields}{Enumerator}
+\raisebox{\heightof{T}}[0pt][0pt]{\index{UINT8@{UINT8}!fwd.hpp@{fwd.hpp}}\index{fwd.hpp@{fwd.hpp}!UINT8@{UINT8}}}\mbox{\Hypertarget{fwd_8hpp_a2bfb0a0ff1c379a8b4e8f9d24fdd4839aecfc091ed2a607335524c8389cfa41b5}\label{fwd_8hpp_a2bfb0a0ff1c379a8b4e8f9d24fdd4839aecfc091ed2a607335524c8389cfa41b5}} 
+U\+I\+N\+T8&uin8\+\_\+t type \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{UINT16@{UINT16}!fwd.hpp@{fwd.hpp}}\index{fwd.hpp@{fwd.hpp}!UINT16@{UINT16}}}\mbox{\Hypertarget{fwd_8hpp_a2bfb0a0ff1c379a8b4e8f9d24fdd4839a48d8f1a723d44ff4a87db1bb6c551c62}\label{fwd_8hpp_a2bfb0a0ff1c379a8b4e8f9d24fdd4839a48d8f1a723d44ff4a87db1bb6c551c62}} 
+U\+I\+N\+T16&uin16\+\_\+t type \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{UINT32@{UINT32}!fwd.hpp@{fwd.hpp}}\index{fwd.hpp@{fwd.hpp}!UINT32@{UINT32}}}\mbox{\Hypertarget{fwd_8hpp_a2bfb0a0ff1c379a8b4e8f9d24fdd4839a17266551181f69a1b4a3ad5c9e270afc}\label{fwd_8hpp_a2bfb0a0ff1c379a8b4e8f9d24fdd4839a17266551181f69a1b4a3ad5c9e270afc}} 
+U\+I\+N\+T32&uint32\+\_\+t type \\
+\hline
+
+\end{DoxyEnumFields}

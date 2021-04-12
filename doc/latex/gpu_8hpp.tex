@@ -1,0 +1,96 @@
+\hypertarget{gpu_8hpp}{}\doxysection{student/gpu.hpp File Reference}
+\label{gpu_8hpp}\index{student/gpu.hpp@{student/gpu.hpp}}
+
+
+This file contains class that represents graphic card.  
+
+
+{\ttfamily \#include $<$student/fwd.\+hpp$>$}\newline
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{gpu_8hpp_ab7d3aa14be823b93893b0cd2cb33abd0}{clear}} (\mbox{\hyperlink{structGPUContext}{G\+P\+U\+Context}} \&ctx, float r, float g, float b, float a)
+\begin{DoxyCompactList}\small\item\em This function clears framebuffer. \end{DoxyCompactList}\item 
+glm\+::vec4 \mbox{\hyperlink{gpu_8hpp_abf6cca928d7eb5a455aed9776b59aaee}{read\+\_\+texture}} (\mbox{\hyperlink{structTexture}{Texture}} const \&texture, glm\+::vec2 uv)
+\begin{DoxyCompactList}\small\item\em \mbox{[}draw\+Triangles\+Impl\mbox{]} \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+void($\ast$ \mbox{\hyperlink{gpu_8hpp_ab74fb851bb0923d1cc071b461939cc3c}{draw\+Triangles}} )(\mbox{\hyperlink{structGPUContext}{G\+P\+U\+Context}} \&ctx, uint32\+\_\+t n)
+\begin{DoxyCompactList}\small\item\em Function that renders triangles. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+This file contains class that represents graphic card. 
+
+\begin{DoxyAuthor}{Author}
+Tomáš Milet, \href{mailto:imilet@fit.vutbr.cz}{\texttt{ imilet@fit.\+vutbr.\+cz}} 
+\end{DoxyAuthor}
+
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{gpu_8hpp_ab7d3aa14be823b93893b0cd2cb33abd0}\label{gpu_8hpp_ab7d3aa14be823b93893b0cd2cb33abd0}} 
+\index{gpu.hpp@{gpu.hpp}!clear@{clear}}
+\index{clear@{clear}!gpu.hpp@{gpu.hpp}}
+\doxysubsubsection{\texorpdfstring{clear()}{clear()}}
+{\footnotesize\ttfamily void clear (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structGPUContext}{G\+P\+U\+Context}} \&}]{ctx,  }\item[{float}]{r,  }\item[{float}]{g,  }\item[{float}]{b,  }\item[{float}]{a }\end{DoxyParamCaption})}
+
+
+
+This function clears framebuffer. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em ctx} & \mbox{\hyperlink{structGPUContext}{G\+P\+U\+Context}} \\
+\hline
+{\em r} & red channel \\
+\hline
+{\em g} & green channel \\
+\hline
+{\em b} & blue channel \\
+\hline
+{\em a} & alpha channel \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{gpu_8hpp_abf6cca928d7eb5a455aed9776b59aaee}\label{gpu_8hpp_abf6cca928d7eb5a455aed9776b59aaee}} 
+\index{gpu.hpp@{gpu.hpp}!read\_texture@{read\_texture}}
+\index{read\_texture@{read\_texture}!gpu.hpp@{gpu.hpp}}
+\doxysubsubsection{\texorpdfstring{read\_texture()}{read\_texture()}}
+{\footnotesize\ttfamily glm\+::vec4 read\+\_\+texture (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structTexture}{Texture}} const \&}]{texture,  }\item[{glm\+::vec2}]{uv }\end{DoxyParamCaption})}
+
+
+
+\mbox{[}draw\+Triangles\+Impl\mbox{]} 
+
+This function reads color from texture.
+
+
+\begin{DoxyParams}{Parameters}
+{\em texture} & texture \\
+\hline
+{\em uv} & uv coordinates\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+color 4 floats 
+\end{DoxyReturn}
+
+
+\doxysubsection{Variable Documentation}
+\mbox{\Hypertarget{gpu_8hpp_ab74fb851bb0923d1cc071b461939cc3c}\label{gpu_8hpp_ab74fb851bb0923d1cc071b461939cc3c}} 
+\index{gpu.hpp@{gpu.hpp}!drawTriangles@{drawTriangles}}
+\index{drawTriangles@{drawTriangles}!gpu.hpp@{gpu.hpp}}
+\doxysubsubsection{\texorpdfstring{drawTriangles}{drawTriangles}}
+{\footnotesize\ttfamily void($\ast$ draw\+Triangles) (\mbox{\hyperlink{structGPUContext}{G\+P\+U\+Context}} \&ctx, uint32\+\_\+t n)}
+
+
+
+Function that renders triangles. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em ctx} & \mbox{\hyperlink{structGPUContext}{G\+P\+U\+Context}} \\
+\hline
+{\em n} & number of vertices \\
+\hline
+\end{DoxyParams}

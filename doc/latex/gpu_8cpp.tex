@@ -1,0 +1,87 @@
+\hypertarget{gpu_8cpp}{}\doxysection{student/gpu.cpp File Reference}
+\label{gpu_8cpp}\index{student/gpu.cpp@{student/gpu.cpp}}
+
+
+This file contains implementation of gpu.  
+
+
+{\ttfamily \#include $<$student/gpu.\+hpp$>$}\newline
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{gpu_8cpp_a2ad1fed3d7e6cddf0f9a3bd339992f40}{draw\+Triangles\+Impl}} (\mbox{\hyperlink{structGPUContext}{G\+P\+U\+Context}} \&ctx, uint32\+\_\+t nof\+Vertices)
+\begin{DoxyCompactList}\small\item\em \mbox{[}draw\+Triangles\+Impl\mbox{]} \end{DoxyCompactList}\item 
+glm\+::vec4 \mbox{\hyperlink{gpu_8cpp_abf6cca928d7eb5a455aed9776b59aaee}{read\+\_\+texture}} (\mbox{\hyperlink{structTexture}{Texture}} const \&texture, glm\+::vec2 uv)
+\begin{DoxyCompactList}\small\item\em \mbox{[}draw\+Triangles\+Impl\mbox{]} \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{gpu_8cpp_ab7d3aa14be823b93893b0cd2cb33abd0}{clear}} (\mbox{\hyperlink{structGPUContext}{G\+P\+U\+Context}} \&ctx, float r, float g, float b, float a)
+\begin{DoxyCompactList}\small\item\em This function clears framebuffer. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+This file contains implementation of gpu. 
+
+\begin{DoxyAuthor}{Author}
+Tomáš Milet, \href{mailto:imilet@fit.vutbr.cz}{\texttt{ imilet@fit.\+vutbr.\+cz}} 
+\end{DoxyAuthor}
+
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{gpu_8cpp_ab7d3aa14be823b93893b0cd2cb33abd0}\label{gpu_8cpp_ab7d3aa14be823b93893b0cd2cb33abd0}} 
+\index{gpu.cpp@{gpu.cpp}!clear@{clear}}
+\index{clear@{clear}!gpu.cpp@{gpu.cpp}}
+\doxysubsubsection{\texorpdfstring{clear()}{clear()}}
+{\footnotesize\ttfamily void clear (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structGPUContext}{G\+P\+U\+Context}} \&}]{ctx,  }\item[{float}]{r,  }\item[{float}]{g,  }\item[{float}]{b,  }\item[{float}]{a }\end{DoxyParamCaption})}
+
+
+
+This function clears framebuffer. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em ctx} & \mbox{\hyperlink{structGPUContext}{G\+P\+U\+Context}} \\
+\hline
+{\em r} & red channel \\
+\hline
+{\em g} & green channel \\
+\hline
+{\em b} & blue channel \\
+\hline
+{\em a} & alpha channel \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{gpu_8cpp_a2ad1fed3d7e6cddf0f9a3bd339992f40}\label{gpu_8cpp_a2ad1fed3d7e6cddf0f9a3bd339992f40}} 
+\index{gpu.cpp@{gpu.cpp}!drawTrianglesImpl@{drawTrianglesImpl}}
+\index{drawTrianglesImpl@{drawTrianglesImpl}!gpu.cpp@{gpu.cpp}}
+\doxysubsubsection{\texorpdfstring{drawTrianglesImpl()}{drawTrianglesImpl()}}
+{\footnotesize\ttfamily void draw\+Triangles\+Impl (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structGPUContext}{G\+P\+U\+Context}} \&}]{ctx,  }\item[{uint32\+\_\+t}]{nof\+Vertices }\end{DoxyParamCaption})}
+
+
+
+\mbox{[}draw\+Triangles\+Impl\mbox{]} 
+
+\begin{DoxyRefDesc}{Todo}
+\item[\mbox{\hyperlink{todo__todo000004}{Todo}}]Tato funkce vykreslí trojúhelníky podle daného nastavení.~\newline
+ ctx obsahuje aktuální stav grafické karty. Parametr \char`\"{}nof\+Vertices\char`\"{} obsahuje počet vrcholů, který by se měl vykreslit (3 pro jeden trojúhelník).~\newline
+ Bližší informace jsou uvedeny na hlavní stránce dokumentace. \end{DoxyRefDesc}
+\mbox{\Hypertarget{gpu_8cpp_abf6cca928d7eb5a455aed9776b59aaee}\label{gpu_8cpp_abf6cca928d7eb5a455aed9776b59aaee}} 
+\index{gpu.cpp@{gpu.cpp}!read\_texture@{read\_texture}}
+\index{read\_texture@{read\_texture}!gpu.cpp@{gpu.cpp}}
+\doxysubsubsection{\texorpdfstring{read\_texture()}{read\_texture()}}
+{\footnotesize\ttfamily glm\+::vec4 read\+\_\+texture (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structTexture}{Texture}} const \&}]{texture,  }\item[{glm\+::vec2}]{uv }\end{DoxyParamCaption})}
+
+
+
+\mbox{[}draw\+Triangles\+Impl\mbox{]} 
+
+This function reads color from texture.
+
+
+\begin{DoxyParams}{Parameters}
+{\em texture} & texture \\
+\hline
+{\em uv} & uv coordinates\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+color 4 floats 
+\end{DoxyReturn}
