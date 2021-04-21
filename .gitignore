@@ -12,3 +12,4 @@ _deps
 
 build/izgProject
 build/libs/
+build/.cmake/
