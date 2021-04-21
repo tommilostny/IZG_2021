@@ -382,7 +382,7 @@ SCENARIO("15"){
 
   bool success = true;
 
-  success &= glm::abs(inFragments.size()-expectedCount) <= err;
+  success &= equalCounts(inFragments.size(),expectedCount,err);
 
   glm::vec3 ndc      [3];for(int i=0;i<3;++i)ndc[i] = glm::vec3(outVertices[i].gl_Position)/outVertices[i].gl_Position.w;
   glm::vec3 viewSpace[3];for(int i=0;i<3;++i)viewSpace[i] = glm::vec3((glm::vec2(ndc[i])*.5f+.5f)*glm::vec2(res),ndc[i].z);
@@ -485,7 +485,7 @@ SCENARIO("16"){
 
   uint32_t expectedCount = w*h/2;
   uint32_t err = w;
-  success &= glm::abs(inFragments.size()-expectedCount) <= err;
+  success &= equalCounts(inFragments.size(),expectedCount,err);
 
   std::vector<InFragment>badFragments;
 
@@ -588,7 +588,7 @@ SCENARIO("17"){
 
   uint32_t expectedCount = w*h/2;
   uint32_t err = w;
-  success &= glm::abs(inFragments.size()-expectedCount) <= err;
+  success &= equalCounts(inFragments.size(),expectedCount,err);
 
   std::vector<InFragment>badFragments;
 
@@ -697,7 +697,7 @@ SCENARIO("18"){
 
   uint32_t expectedCount = w*h/2;
   uint32_t err = w;
-  success &= glm::abs(inFragments.size()-expectedCount) <= err;
+  success &= equalCounts(inFragments.size(),expectedCount,err);
 
   std::vector<InFragment>badFragments;
 
