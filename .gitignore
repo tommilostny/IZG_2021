@@ -13,3 +13,5 @@ _deps
 build/izgProject
 build/libs/
 build/.cmake/
+/.vs
+/out/build/x64-Debug
