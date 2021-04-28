@@ -46,7 +46,7 @@ add_library(MealyMachine::MealyMachine STATIC IMPORTED)
 
 set_target_properties(MealyMachine::MealyMachine PROPERTIES
   COMPATIBLE_INTERFACE_STRING "MealyMachine_MAJOR_VERSION"
-  INTERFACE_INCLUDE_DIRECTORIES "/home/tommilostny/IZG/project/IZG_2021/libs/MealyMachine/src;/home/tommilostny/IZG/project/IZG_2021/build/libs/MealyMachine;/home/tommilostny/IZG/project/IZG_2021/libs/MealyMachine"
+  INTERFACE_INCLUDE_DIRECTORIES "/home/tommilostny/IZG/libs/MealyMachine/src;/home/tommilostny/IZG/build/libs/MealyMachine;/home/tommilostny/IZG/libs/MealyMachine"
   INTERFACE_MealyMachine_MAJOR_VERSION "1"
 )
 
@@ -54,7 +54,7 @@ set_target_properties(MealyMachine::MealyMachine PROPERTIES
 set_property(TARGET MealyMachine::MealyMachine APPEND PROPERTY IMPORTED_CONFIGURATIONS NOCONFIG)
 set_target_properties(MealyMachine::MealyMachine PROPERTIES
   IMPORTED_LINK_INTERFACE_LANGUAGES_NOCONFIG "CXX"
-  IMPORTED_LOCATION_NOCONFIG "/home/tommilostny/IZG/project/IZG_2021/build/libs/MealyMachine/libMealyMachine.a"
+  IMPORTED_LOCATION_NOCONFIG "/home/tommilostny/IZG/build/libs/MealyMachine/libMealyMachine.a"
   )
 
 # This file does not depend on other imported targets which have

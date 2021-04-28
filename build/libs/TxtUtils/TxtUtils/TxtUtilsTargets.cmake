@@ -46,7 +46,7 @@ add_library(TxtUtils::TxtUtils STATIC IMPORTED)
 
 set_target_properties(TxtUtils::TxtUtils PROPERTIES
   COMPATIBLE_INTERFACE_STRING "TxtUtils_MAJOR_VERSION"
-  INTERFACE_INCLUDE_DIRECTORIES "/home/tommilostny/IZG/project/IZG_2021/libs/TxtUtils/src;/home/tommilostny/IZG/project/IZG_2021/build/libs/TxtUtils;/home/tommilostny/IZG/project/IZG_2021/libs/TxtUtils"
+  INTERFACE_INCLUDE_DIRECTORIES "/home/tommilostny/IZG/libs/TxtUtils/src;/home/tommilostny/IZG/build/libs/TxtUtils;/home/tommilostny/IZG/libs/TxtUtils"
   INTERFACE_LINK_LIBRARIES "MealyMachine::MealyMachine"
   INTERFACE_TxtUtils_MAJOR_VERSION "1"
 )
@@ -55,7 +55,7 @@ set_target_properties(TxtUtils::TxtUtils PROPERTIES
 set_property(TARGET TxtUtils::TxtUtils APPEND PROPERTY IMPORTED_CONFIGURATIONS NOCONFIG)
 set_target_properties(TxtUtils::TxtUtils PROPERTIES
   IMPORTED_LINK_INTERFACE_LANGUAGES_NOCONFIG "CXX"
-  IMPORTED_LOCATION_NOCONFIG "/home/tommilostny/IZG/project/IZG_2021/build/libs/TxtUtils/libTxtUtils.a"
+  IMPORTED_LOCATION_NOCONFIG "/home/tommilostny/IZG/build/libs/TxtUtils/libTxtUtils.a"
   )
 
 # Make sure the targets which have been exported in some other 

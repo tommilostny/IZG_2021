@@ -1,8 +1,8 @@
-if (NOT EXISTS "/home/tommilostny/IZG/project/IZG_2021/build/install_manifest.txt")
-    message(FATAL_ERROR "Cannot find install manifest: \"/home/tommilostny/IZG/project/IZG_2021/build/install_manifest.txt\"")
-endif(NOT EXISTS "/home/tommilostny/IZG/project/IZG_2021/build/install_manifest.txt")
+if (NOT EXISTS "/home/tommilostny/IZG/build/install_manifest.txt")
+    message(FATAL_ERROR "Cannot find install manifest: \"/home/tommilostny/IZG/build/install_manifest.txt\"")
+endif(NOT EXISTS "/home/tommilostny/IZG/build/install_manifest.txt")
 
-file(READ "/home/tommilostny/IZG/project/IZG_2021/build/install_manifest.txt" files)
+file(READ "/home/tommilostny/IZG/build/install_manifest.txt" files)
 string(REGEX REPLACE "\n" ";" files "${files}")
 foreach (file ${files})
     message(STATUS "Uninstalling \"$ENV{DESTDIR}${file}\"")

@@ -47,7 +47,7 @@ add_library(ArgumentViewer::ArgumentViewer STATIC IMPORTED)
 set_target_properties(ArgumentViewer::ArgumentViewer PROPERTIES
   COMPATIBLE_INTERFACE_STRING "ArgumentViewer_MAJOR_VERSION"
   INTERFACE_ArgumentViewer_MAJOR_VERSION "1"
-  INTERFACE_INCLUDE_DIRECTORIES "/home/tommilostny/IZG/project/IZG_2021/libs/ArgumentViewer/src;/home/tommilostny/IZG/project/IZG_2021/build/libs/ArgumentViewer;/home/tommilostny/IZG/project/IZG_2021/libs/ArgumentViewer"
+  INTERFACE_INCLUDE_DIRECTORIES "/home/tommilostny/IZG/libs/ArgumentViewer/src;/home/tommilostny/IZG/build/libs/ArgumentViewer;/home/tommilostny/IZG/libs/ArgumentViewer"
   INTERFACE_LINK_LIBRARIES "MealyMachine::MealyMachine;TxtUtils::TxtUtils"
 )
 
@@ -55,7 +55,7 @@ set_target_properties(ArgumentViewer::ArgumentViewer PROPERTIES
 set_property(TARGET ArgumentViewer::ArgumentViewer APPEND PROPERTY IMPORTED_CONFIGURATIONS NOCONFIG)
 set_target_properties(ArgumentViewer::ArgumentViewer PROPERTIES
   IMPORTED_LINK_INTERFACE_LANGUAGES_NOCONFIG "CXX"
-  IMPORTED_LOCATION_NOCONFIG "/home/tommilostny/IZG/project/IZG_2021/build/libs/ArgumentViewer/libArgumentViewer.a"
+  IMPORTED_LOCATION_NOCONFIG "/home/tommilostny/IZG/build/libs/ArgumentViewer/libArgumentViewer.a"
   )
 
 # Make sure the targets which have been exported in some other 
