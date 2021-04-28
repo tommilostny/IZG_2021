@@ -6,9 +6,7 @@
  */
 
 #include <student/gpu.hpp>
-
-
-
+#include <iostream>
 
 //! [drawTrianglesImpl]
 void drawTrianglesImpl(GPUContext &ctx,uint32_t nofVertices){
@@ -19,13 +17,14 @@ void drawTrianglesImpl(GPUContext &ctx,uint32_t nofVertices){
   /// Parametr "nofVertices" obsahuje počet vrcholů, který by se měl vykreslit (3 pro jeden trojúhelník).<br>
   /// Bližší informace jsou uvedeny na hlavní stránce dokumentace.
 
-  for (uint32_t v = 0; v < nofVertices; v++)
-  {
-    InVertex in_vertex;
-    in_vertex.gl_VertexID = v;
-    OutVertex out_vertex;
-    ctx.prg.vertexShader(out_vertex, in_vertex, ctx.prg.uniforms);
-  }
+    for (uint32_t v = 0; v < nofVertices; v++)
+    {
+        InVertex in_vertex;
+        in_vertex.gl_VertexID = v;
+
+        OutVertex out_vertex;
+        ctx.prg.vertexShader(out_vertex, in_vertex, ctx.prg.uniforms);
+    }
 }
 //! [drawTrianglesImpl]
 
