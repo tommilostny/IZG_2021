@@ -6,6 +6,8 @@
  */
 
 #include <student/gpu.hpp>
+
+#include <glm/gtc/matrix_transform.hpp> //idk..
 #include <iostream> //remove on release
 
 class VertexAssembly
@@ -72,39 +74,45 @@ private:
 	}
 };
 
-class PrimitiveAssembly
+void primitiveAssembly(std::vector<OutVertex> &primitive, VertexArray &vao, Program &prg, uint32_t primitiveIndex, uint8_t verticesCount)
 {
-public:
-	static void Run(std::vector<OutVertex> &primitive, VertexArray &vao, Program &prg, uint32_t primitiveIndex, uint8_t vecticesCount)
+	for (uint32_t v = 0; v < verticesCount; v++)
 	{
-		for (uint32_t v = 0; v < vecticesCount; v++)
+		InVertex inVertex;
+		OutVertex outVertex;
+
+		VertexAssembly::Run(inVertex, vao, v + primitiveIndex);
+
+		prg.vertexShader(outVertex, inVertex, prg.uniforms);
+		primitive.push_back(outVertex);
+	}
+}
+
+void perspectiveDivision(std::vector<OutVertex> &primitive, uint8_t verticesCount)
+{
+	for (int v = 0; v < verticesCount; v++)
+	{
+		for (size_t i = 0; i < maxAttributes; i++)
 		{
-			InVertex inVertex;
-			OutVertex outVertex;
-
-			VertexAssembly::Run(inVertex, vao, v + primitiveIndex);
-
-			prg.vertexShader(outVertex, inVertex, prg.uniforms);
-			primitive.push_back(outVertex);
+			auto xyzw = primitive[v].attributes[i].v4;
+			primitive[v].attributes[i].v3 = glm::vec3(xyzw.x / xyzw.w, xyzw.y / xyzw.w, xyzw.z / xyzw.w);
 		}
 	}
-};
+}
 
-class PerspectiveDivision
+void viewportTransformation(std::vector<OutVertex> &primitive, Frame &frame, uint8_t verticesCount)
 {
-public:
-	static void Run(std::vector<OutVertex> &primitive)
+	auto translate = glm::translate(glm::mat4(1.0), glm::vec3(1.0, 1.0, 0.0));
+	auto scale = glm::scale(glm::mat4(1.0), glm::vec3(frame.width, frame.height, 1.0));
+
+	for (int v = 0; v < verticesCount; v++)
 	{
-		for (int v = 0; v < 3; v++)
+		for (size_t i = 0; i < maxAttributes; i++)
 		{
-			for (size_t i = 0; i < maxAttributes; i++)
-			{
-				auto xyzw = primitive[v].attributes[i].v4;
-				primitive[v].attributes[i].v3 = glm::vec3(xyzw.x / xyzw.w, xyzw.y / xyzw.w, xyzw.z / xyzw.w);
-			}
+			primitive[v].attributes[i].v3 = glm::vec3(scale * translate * glm::vec4(primitive[v].attributes[i].v3, 1.0));
 		}
 	}
-};
+}
 
 //! [drawTrianglesImpl]
 void drawTrianglesImpl(GPUContext &ctx, uint32_t nofVertices){
@@ -114,12 +122,16 @@ void drawTrianglesImpl(GPUContext &ctx, uint32_t nofVertices){
 	/// ctx obsahuje aktuální stav grafické karty.
 	/// Parametr "nofVertices" obsahuje počet vrcholů, který by se měl vykreslit (3 pro jeden trojúhelník).<br>
 	/// Bližší informace jsou uvedeny na hlavní stránce dokumentace.
+	
+	uint8_t verticesInTriangle = 3;
 
-	for (uint32_t t = 0; t < nofVertices; t += 3)
+	for (uint32_t t = 0; t < nofVertices; t += verticesInTriangle)
 	{
 		std::vector<OutVertex> primitive;
-		PrimitiveAssembly::Run(primitive, ctx.vao, ctx.prg, t, 3);
-		PerspectiveDivision::Run(primitive);
+		primitiveAssembly(primitive, ctx.vao, ctx.prg, t, verticesInTriangle);
+
+		perspectiveDivision(primitive, verticesInTriangle);
+		viewportTransformation(primitive, ctx.frame, verticesInTriangle);
 	}
 }
 //! [drawTrianglesImpl]
