@@ -72,6 +72,40 @@ private:
 	}
 };
 
+class PrimitiveAssembly
+{
+public:
+	static void Run(std::vector<OutVertex> &primitive, VertexArray &vao, Program &prg, uint32_t primitiveIndex, uint8_t vecticesCount)
+	{
+		for (uint32_t v = 0; v < vecticesCount; v++)
+		{
+			InVertex inVertex;
+			OutVertex outVertex;
+
+			VertexAssembly::Run(inVertex, vao, v + primitiveIndex);
+
+			prg.vertexShader(outVertex, inVertex, prg.uniforms);
+			primitive.push_back(outVertex);
+		}
+	}
+};
+
+class PerspectiveDivision
+{
+public:
+	static void Run(std::vector<OutVertex> &primitive)
+	{
+		for (int v = 0; v < 3; v++)
+		{
+			for (size_t i = 0; i < maxAttributes; i++)
+			{
+				auto xyzw = primitive[v].attributes[i].v4;
+				primitive[v].attributes[i].v3 = glm::vec3(xyzw.x / xyzw.w, xyzw.y / xyzw.w, xyzw.z / xyzw.w);
+			}
+		}
+	}
+};
+
 //! [drawTrianglesImpl]
 void drawTrianglesImpl(GPUContext &ctx, uint32_t nofVertices){
 	(void)ctx;
@@ -81,14 +115,11 @@ void drawTrianglesImpl(GPUContext &ctx, uint32_t nofVertices){
 	/// Parametr "nofVertices" obsahuje počet vrcholů, který by se měl vykreslit (3 pro jeden trojúhelník).<br>
 	/// Bližší informace jsou uvedeny na hlavní stránce dokumentace.
 
-	for (uint32_t v = 0; v < nofVertices; v++)
+	for (uint32_t t = 0; t < nofVertices; t += 3)
 	{
-		InVertex inVertex;
-		OutVertex outVertex;
-
-		VertexAssembly::Run(inVertex, ctx.vao, v);
-
-		ctx.prg.vertexShader(outVertex, inVertex, ctx.prg.uniforms);
+		std::vector<OutVertex> primitive;
+		PrimitiveAssembly::Run(primitive, ctx.vao, ctx.prg, t, 3);
+		PerspectiveDivision::Run(primitive);
 	}
 }
 //! [drawTrianglesImpl]
