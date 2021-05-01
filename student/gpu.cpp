@@ -11,59 +11,61 @@
 class VertexAssembly
 {
 public:
-	static void run(InVertex &in_vertex, VertexArray &vao, uint32_t invoke_num)
+	static void Run(InVertex &inVertex, VertexArray &vao, uint32_t invokeNum)
 	{
-		compute_vertex_id(in_vertex, vao, invoke_num);
-		read_attributes(in_vertex, vao);
+		ComputeVertexId(inVertex, vao, invokeNum);
+		ReadAttributes(inVertex, vao);
 	}
 
 private:
-	static void compute_vertex_id(InVertex &in_vertex, VertexArray &vao, uint32_t invoke_num)
+	static void ComputeVertexId(InVertex &inVertex, VertexArray &vao, uint32_t invokeNum)
 	{
 		if (vao.indexBuffer == nullptr)
 		{
-			in_vertex.gl_VertexID = invoke_num;
+			inVertex.gl_VertexID = invokeNum;
 		}
 		else switch (vao.indexType)
 		{
 		case IndexType::UINT8:
-			in_vertex.gl_VertexID = ((uint8_t*)vao.indexBuffer)[invoke_num];
+			inVertex.gl_VertexID = ((uint8_t*)vao.indexBuffer)[invokeNum];
 			break;
 		case IndexType::UINT16:
-			in_vertex.gl_VertexID = ((uint16_t*)vao.indexBuffer)[invoke_num];
+			inVertex.gl_VertexID = ((uint16_t*)vao.indexBuffer)[invokeNum];
 			break;
 		case IndexType::UINT32:
-			in_vertex.gl_VertexID = ((uint32_t*)vao.indexBuffer)[invoke_num];
+			inVertex.gl_VertexID = ((uint32_t*)vao.indexBuffer)[invokeNum];
 			break;
 		}
 	}
 
-	static void read_attributes(InVertex &in_vertex, VertexArray &vao)
+	static void ReadAttributes(InVertex &inVertex, VertexArray &vao)
 	{
-		for (uint32_t i = 0; i < maxAttributes && vao.vertexAttrib[i].type != AttributeType::EMPTY; i++)
+		for (uint32_t i = 0; i < maxAttributes; i++)
 		{
-			auto step = (vao.vertexAttrib[i].stride * in_vertex.gl_VertexID) / sizeof(float);
-			auto ptr = (float*)vao.vertexAttrib[i].bufferData + vao.vertexAttrib[i].offset / sizeof(float) + step;
+			if (vao.vertexAttrib[i].type == AttributeType::EMPTY)
+				continue;
+
+			auto ptr = (uint8_t*)vao.vertexAttrib[i].bufferData + vao.vertexAttrib[i].stride * inVertex.gl_VertexID + vao.vertexAttrib[i].offset;
 
 			switch (vao.vertexAttrib[i].type)
 			{
 			case AttributeType::FLOAT:
-				in_vertex.attributes[i].v1 = *ptr;
+				inVertex.attributes[i].v1 = *(float*)ptr;
 				break;
 			case AttributeType::VEC2:
-				in_vertex.attributes[i].v2.x = *ptr;
-				in_vertex.attributes[i].v2.y = *(ptr + step);
+				inVertex.attributes[i].v2.x = *(float*)ptr;
+				inVertex.attributes[i].v2.y = *(float*)(ptr + sizeof(float));
 				break;
 			case AttributeType::VEC3:
-				in_vertex.attributes[i].v3.x = *ptr;
-				in_vertex.attributes[i].v3.y = *(ptr + step);
-				in_vertex.attributes[i].v3.z = *(ptr + 2 * step);
+				inVertex.attributes[i].v3.x = *(float*)ptr;
+				inVertex.attributes[i].v3.y = *(float*)(ptr + sizeof(float));
+				inVertex.attributes[i].v3.z = *(float*)(ptr + 2 * sizeof(float));
 				break;
 			case AttributeType::VEC4:
-				in_vertex.attributes[i].v4.x = *ptr;
-				in_vertex.attributes[i].v4.y = *(ptr + step);
-				in_vertex.attributes[i].v4.z = *(ptr + 2 * step);
-				in_vertex.attributes[i].v4.w = *(ptr + 3 * step);
+				inVertex.attributes[i].v4.x = *(float*)ptr;
+				inVertex.attributes[i].v4.y = *(float*)(ptr + sizeof(float));
+				inVertex.attributes[i].v4.z = *(float*)(ptr + 2 * sizeof(float));
+				inVertex.attributes[i].v4.w = *(float*)(ptr + 3 * sizeof(float));
 				break;
 			}
 		}
@@ -81,12 +83,12 @@ void drawTrianglesImpl(GPUContext &ctx, uint32_t nofVertices){
 
 	for (uint32_t v = 0; v < nofVertices; v++)
 	{
-		InVertex in_vertex;
-		OutVertex out_vertex;
+		InVertex inVertex;
+		OutVertex outVertex;
 
-		VertexAssembly::run(in_vertex, ctx.vao, v);
+		VertexAssembly::Run(inVertex, ctx.vao, v);
 
-		ctx.prg.vertexShader(out_vertex, in_vertex, ctx.prg.uniforms);
+		ctx.prg.vertexShader(outVertex, inVertex, ctx.prg.uniforms);
 	}
 }
 //! [drawTrianglesImpl]
