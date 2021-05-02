@@ -74,45 +74,103 @@ private:
 	}
 };
 
-void primitiveAssembly(std::vector<OutVertex> &primitive, VertexArray &vao, Program &prg, uint32_t primitiveIndex, uint8_t verticesCount)
+class Triangle
 {
-	for (uint32_t v = 0; v < verticesCount; v++)
+public:
+	OutVertex Points[3];
+
+	//Primitive Assembly jako konstruktor trojúhelníka
+	Triangle(VertexArray &vao, Program &prg, uint32_t triangleId)
 	{
-		InVertex inVertex;
-		OutVertex outVertex;
-
-		VertexAssembly::Run(inVertex, vao, v + primitiveIndex);
-
-		prg.vertexShader(outVertex, inVertex, prg.uniforms);
-		primitive.push_back(outVertex);
-	}
-}
-
-void perspectiveDivision(std::vector<OutVertex> &primitive, uint8_t verticesCount)
-{
-	for (int v = 0; v < verticesCount; v++)
-	{
-		for (size_t i = 0; i < maxAttributes; i++)
+		for (uint32_t v = triangleId; v < triangleId + 3; v++)
 		{
-			auto xyzw = primitive[v].attributes[i].v4;
-			primitive[v].attributes[i].v3 = glm::vec3(xyzw.x / xyzw.w, xyzw.y / xyzw.w, xyzw.z / xyzw.w);
+			InVertex inVertex;
+			VertexAssembly::Run(inVertex, vao, v);
+			prg.vertexShader(Points[v - triangleId], inVertex, prg.uniforms);
 		}
 	}
-}
 
-void viewportTransformation(std::vector<OutVertex> &primitive, Frame &frame, uint8_t verticesCount)
-{
-	auto translate = glm::translate(glm::mat4(1.0), glm::vec3(1.0, 1.0, 0.0));
-	auto scale = glm::scale(glm::mat4(1.0), glm::vec3(frame.width, frame.height, 1.0));
-
-	for (int v = 0; v < verticesCount; v++)
+	void PerspectiveDivision()
 	{
-		for (size_t i = 0; i < maxAttributes; i++)
+		for (int v = 0; v < 3; v++)
 		{
-			primitive[v].attributes[i].v3 = glm::vec3(scale * translate * glm::vec4(primitive[v].attributes[i].v3, 1.0));
+			auto point = Points[v].gl_Position;
+			Points[v].gl_Position = glm::vec4(point.x / point.w, point.y / point.w, point.z / point.w, 1.0);
 		}
 	}
-}
+
+	void ViewportTransformation(Frame &frame)
+	{
+		auto translate = glm::translate(glm::mat4(1.0), glm::vec3(1.0, 1.0, 0.0));
+		auto scale = glm::scale(glm::mat4(1.0), glm::vec3(frame.width, frame.height, 1.0));
+
+		for (int v = 0; v < 3; v++)
+		{
+			Points[v].gl_Position = scale * translate * Points[v].gl_Position;
+		}
+	}
+
+	void Rasterize(Frame &frame, Program &prg)
+	{
+		auto v1 = Points[0].gl_Position;
+		auto v2 = Points[1].gl_Position;
+		auto v3 = Points[2].gl_Position;
+
+		auto minX = Minimum(v1.x, Minimum(v2.x, v3.x));
+		auto minY = Minimum(v1.y, Minimum(v2.y, v3.y));
+		auto maxX = Maximum(v1.x, Maximum(v2.x, v3.x));
+		auto maxY = Maximum(v1.y, Maximum(v2.y, v3.y));
+
+		minX = Maximum(minX, 0);
+		minY = Maximum(minY, 0);
+		maxX = Minimum(maxX, frame.width - 1);
+		maxY = Minimum(maxY, frame.height - 1);
+
+		auto deltaX1 = v2.x - v1.x;
+		auto deltaX2 = v3.x - v2.x;
+		auto deltaX3 = v1.x - v3.x;
+
+		auto deltaY1 = v2.y - v1.y;
+		auto deltaY2 = v3.y - v2.y;
+		auto deltaY3 = v1.y - v3.y;
+
+		auto edgeF1 = (minY - v1.y) * deltaX1 - (minX - v1.x) * deltaY1;
+		auto edgeF2 = (minY - v2.y) * deltaX2 - (minX - v2.x) * deltaY2;
+		auto edgeF3 = (minY - v3.y) * deltaX3 - (minX - v3.x) * deltaY3;
+
+		for (float y = minY; y <= maxY; y++)
+		{
+			bool even = (int)(y - minY) % 2 == 0;
+			int startX = even ? minX : maxX;
+			int endX = even ? maxX + 1 : minX - 1;
+			int stepX = even ? 1 : -1;
+
+			for (float x = startX; x != endX; x += stepX)
+			{
+				if (edgeF1 >= 0 && edgeF2 >= 0 && edgeF3 >= 0)
+				{
+					InFragment inFragment;
+					OutFragment outFragment;
+					prg.fragmentShader(outFragment, inFragment, prg.uniforms);
+				}
+				if (x != endX - stepX)
+				{
+					edgeF1 += even ? -deltaY1 : deltaY1;
+					edgeF2 += even ? -deltaY2 : deltaY2;
+					edgeF3 += even ? -deltaY3 : deltaY3;
+				}
+			}
+			edgeF1 += deltaX1;
+			edgeF2 += deltaX2;
+			edgeF3 += deltaX3;
+		}
+	}
+
+private:
+	inline float Minimum(float a, float b) { return a > b ? b : a; }
+	inline float Maximum(float a, float b) { return a > b ? a : b; }
+};
+
 
 //! [drawTrianglesImpl]
 void drawTrianglesImpl(GPUContext &ctx, uint32_t nofVertices){
@@ -123,15 +181,15 @@ void drawTrianglesImpl(GPUContext &ctx, uint32_t nofVertices){
 	/// Parametr "nofVertices" obsahuje počet vrcholů, který by se měl vykreslit (3 pro jeden trojúhelník).<br>
 	/// Bližší informace jsou uvedeny na hlavní stránce dokumentace.
 	
-	uint8_t verticesInTriangle = 3;
-
-	for (uint32_t t = 0; t < nofVertices; t += verticesInTriangle)
+	for (uint32_t t = 0; t < nofVertices; t += 3)
 	{
-		std::vector<OutVertex> primitive;
-		primitiveAssembly(primitive, ctx.vao, ctx.prg, t, verticesInTriangle);
+		auto triangle = new Triangle(ctx.vao, ctx.prg, t);
 
-		perspectiveDivision(primitive, verticesInTriangle);
-		viewportTransformation(primitive, ctx.frame, verticesInTriangle);
+		triangle->PerspectiveDivision();
+		triangle->ViewportTransformation(ctx.frame);
+		triangle->Rasterize(ctx.frame, ctx.prg);
+
+		delete triangle;
 	}
 }
 //! [drawTrianglesImpl]
