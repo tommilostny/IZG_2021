@@ -7,7 +7,6 @@
 
 #include <student/gpu.hpp>
 
-#include <glm/gtc/matrix_transform.hpp> //idk..
 #include <iostream> //remove on release
 
 class VertexAssembly
@@ -101,12 +100,10 @@ public:
 
 	void ViewportTransformation(Frame &frame)
 	{
-		auto translate = glm::translate(glm::mat4(1.0), glm::vec3(1.0, 1.0, 0.0));
-		auto scale = glm::scale(glm::mat4(1.0), glm::vec3(frame.width, frame.height, 1.0));
-
 		for (int v = 0; v < 3; v++)
 		{
-			Points[v].gl_Position = scale * translate * Points[v].gl_Position;
+			auto point = Points[v].gl_Position;
+			Points[v].gl_Position = glm::vec4((point.x * 0.5 + 0.5) * frame.width, (point.y * 0.5 + 0.5) * frame.height, point.z, 1.0);
 		}
 	}
 
@@ -134,9 +131,9 @@ public:
 		auto deltaY2 = v3.y - v2.y;
 		auto deltaY3 = v1.y - v3.y;
 
-		auto edgeF1 = (minY - v1.y) * deltaX1 - (minX - v1.x) * deltaY1;
-		auto edgeF2 = (minY - v2.y) * deltaX2 - (minX - v2.x) * deltaY2;
-		auto edgeF3 = (minY - v3.y) * deltaX3 - (minX - v3.x) * deltaY3;
+		auto edgeF1 = EdgeFunction(v1, minX, minY, deltaX1, deltaY1);
+		auto edgeF2 = EdgeFunction(v2, minX, minY, deltaX2, deltaY2);
+		auto edgeF3 = EdgeFunction(v3, minX, minY, deltaX3, deltaY3);
 
 		for (float y = minY; y <= maxY; y++)
 		{
@@ -169,8 +166,12 @@ public:
 private:
 	inline float Minimum(float a, float b) { return a > b ? b : a; }
 	inline float Maximum(float a, float b) { return a > b ? a : b; }
-};
 
+	inline float EdgeFunction(glm::vec4 &point, float minX, float minY, float deltaX, float deltaY)
+	{
+		return (minY - point.y) * deltaX - (minX - point.x) * deltaY;
+	}
+};
 
 //! [drawTrianglesImpl]
 void drawTrianglesImpl(GPUContext &ctx, uint32_t nofVertices){
