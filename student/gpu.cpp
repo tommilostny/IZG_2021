@@ -75,9 +75,18 @@ private:
 
 class Triangle
 {
-public:
-	OutVertex Points[3];
+private:
+	OutVertex _points[3];
 
+	inline float Minimum(float a, float b) { return a > b ? b : a; }
+	inline float Maximum(float a, float b) { return a > b ? a : b; }
+
+	inline float EdgeFunction(glm::vec4 &point, float x, float y, float deltaX, float deltaY)
+	{
+		return (y - point.y) * deltaX - (x - point.x) * deltaY;
+	}
+
+public:
 	//Primitive Assembly jako konstruktor trojúhelníka
 	Triangle(VertexArray &vao, Program &prg, uint32_t triangleId)
 	{
@@ -85,91 +94,78 @@ public:
 		{
 			InVertex inVertex;
 			VertexAssembly::Run(inVertex, vao, v);
-			prg.vertexShader(Points[v - triangleId], inVertex, prg.uniforms);
+			prg.vertexShader(_points[v - triangleId], inVertex, prg.uniforms);
 		}
 	}
 
 	void PerspectiveDivision()
 	{
-		for (int v = 0; v < 3; v++)
+		for (uint8_t v = 0; v < 3; v++)
 		{
-			auto point = Points[v].gl_Position;
-			Points[v].gl_Position = glm::vec4(point.x / point.w, point.y / point.w, point.z / point.w, 1.0);
+			auto point = _points[v].gl_Position;
+			_points[v].gl_Position = glm::vec4(point.x / point.w, point.y / point.w, point.z / point.w, 1.0);
 		}
 	}
 
 	void ViewportTransformation(Frame &frame)
 	{
-		for (int v = 0; v < 3; v++)
+		for (uint8_t v = 0; v < 3; v++)
 		{
-			auto point = Points[v].gl_Position;
-			Points[v].gl_Position = glm::vec4((point.x * 0.5 + 0.5) * frame.width, (point.y * 0.5 + 0.5) * frame.height, point.z, 1.0);
+			auto point = _points[v].gl_Position;
+			_points[v].gl_Position = glm::vec4((point.x * 0.5 + 0.5) * frame.width, (point.y * 0.5 + 0.5) * frame.height, point.z, 1.0);
 		}
 	}
 
+	//Rasterize triangle with Pineda algorithm
 	void Rasterize(Frame &frame, Program &prg)
 	{
-		auto v1 = Points[0].gl_Position;
-		auto v2 = Points[1].gl_Position;
-		auto v3 = Points[2].gl_Position;
-
-		auto minX = Minimum(v1.x, Minimum(v2.x, v3.x));
-		auto minY = Minimum(v1.y, Minimum(v2.y, v3.y));
-		auto maxX = Maximum(v1.x, Maximum(v2.x, v3.x));
-		auto maxY = Maximum(v1.y, Maximum(v2.y, v3.y));
+		auto minX = Minimum(_points[0].gl_Position.x, Minimum(_points[1].gl_Position.x, _points[2].gl_Position.x));
+		auto minY = Minimum(_points[0].gl_Position.y, Minimum(_points[1].gl_Position.y, _points[2].gl_Position.y));
+		auto maxX = Maximum(_points[0].gl_Position.x, Maximum(_points[1].gl_Position.x, _points[2].gl_Position.x));
+		auto maxY = Maximum(_points[0].gl_Position.y, Maximum(_points[1].gl_Position.y, _points[2].gl_Position.y));
 
 		minX = Maximum(minX, 0);
 		minY = Maximum(minY, 0);
 		maxX = Minimum(maxX, frame.width - 1);
 		maxY = Minimum(maxY, frame.height - 1);
 
-		auto deltaX1 = v2.x - v1.x;
-		auto deltaX2 = v3.x - v2.x;
-		auto deltaX3 = v1.x - v3.x;
+		auto deltaX1 = _points[1].gl_Position.x - _points[0].gl_Position.x;
+		auto deltaX2 = _points[2].gl_Position.x - _points[1].gl_Position.x;
+		auto deltaX3 = _points[0].gl_Position.x - _points[2].gl_Position.x;
 
-		auto deltaY1 = v2.y - v1.y;
-		auto deltaY2 = v3.y - v2.y;
-		auto deltaY3 = v1.y - v3.y;
+		auto deltaY1 = _points[1].gl_Position.y - _points[0].gl_Position.y;
+		auto deltaY2 = _points[2].gl_Position.y - _points[1].gl_Position.y;
+		auto deltaY3 = _points[0].gl_Position.y - _points[2].gl_Position.y;
 
-		auto edgeF1 = EdgeFunction(v1, minX, minY, deltaX1, deltaY1);
-		auto edgeF2 = EdgeFunction(v2, minX, minY, deltaX2, deltaY2);
-		auto edgeF3 = EdgeFunction(v3, minX, minY, deltaX3, deltaY3);
+		auto edgeF1 = EdgeFunction(_points[0].gl_Position, minX, minY, deltaX1, deltaY1);
+		auto edgeF2 = EdgeFunction(_points[1].gl_Position, minX, minY, deltaX2, deltaY2);
+		auto edgeF3 = EdgeFunction(_points[2].gl_Position, minX, minY, deltaX3, deltaY3);
 
-		for (float y = minY; y <= maxY; y++)
+		for (auto x = minX; x <= maxX; x++)
 		{
-			bool even = (int)(y - minY) % 2 == 0;
-			int startX = even ? minX : maxX;
-			int endX = even ? maxX + 1 : minX - 1;
-			int stepX = even ? 1 : -1;
+			auto e1 = edgeF1;
+			auto e2 = edgeF2;
+			auto e3 = edgeF3;
 
-			for (float x = startX; x != endX; x += stepX)
+			for (auto y = minY; y <= maxY; y++)
 			{
-				if (edgeF1 >= 0 && edgeF2 >= 0 && edgeF3 >= 0)
+				if (e1 >= 0 && e2 >= 0 && e3 >= 0)
 				{
 					InFragment inFragment;
-					OutFragment outFragment;
-					prg.fragmentShader(outFragment, inFragment, prg.uniforms);
+					inFragment.gl_FragCoord = glm::vec4(x + 0.5, y + 0.5, 0, 1);
+
+					if (inFragment.gl_FragCoord.x > 0 && inFragment.gl_FragCoord.x < frame.width
+						&& inFragment.gl_FragCoord.y > 0 && inFragment.gl_FragCoord.y < frame.height
+						)//&& inFragment.gl_FragCoord.x + inFragment.gl_FragCoord.y <= sqrt((frame.width - minX) * (frame.height - minY)))
+					{
+						OutFragment outFragment;
+						prg.fragmentShader(outFragment, inFragment, prg.uniforms);
+					}
 				}
-				if (x != endX - stepX)
-				{
-					edgeF1 += even ? -deltaY1 : deltaY1;
-					edgeF2 += even ? -deltaY2 : deltaY2;
-					edgeF3 += even ? -deltaY3 : deltaY3;
-				}
+				e1 += deltaX1; e2 += deltaX2; e3 += deltaX3;
 			}
-			edgeF1 += deltaX1;
-			edgeF2 += deltaX2;
-			edgeF3 += deltaX3;
+			edgeF1 -= deltaY1; edgeF2 -= deltaY2; edgeF3 -= deltaY3;
 		}
-	}
-
-private:
-	inline float Minimum(float a, float b) { return a > b ? b : a; }
-	inline float Maximum(float a, float b) { return a > b ? a : b; }
-
-	inline float EdgeFunction(glm::vec4 &point, float minX, float minY, float deltaX, float deltaY)
-	{
-		return (minY - point.y) * deltaX - (minX - point.x) * deltaY;
 	}
 };
 
