@@ -81,9 +81,14 @@ private:
 	inline float Minimum(float a, float b) { return a > b ? b : a; }
 	inline float Maximum(float a, float b) { return a > b ? a : b; }
 
-	inline float EdgeFunction(glm::vec4 &point, float x, float y, float deltaX, float deltaY)
+	inline float EdgeFunction(uint8_t pointIndex, float x, float y, float deltaX, float deltaY)
 	{
-		return (y - point.y) * deltaX - (x - point.x) * deltaY;
+		return (y - _points[pointIndex].gl_Position.y) * deltaX - (x - _points[pointIndex].gl_Position.x) * deltaY;
+	}
+
+	inline float PointSum(uint8_t pointIndex)
+	{
+		return _points[pointIndex].gl_Position.x + _points[pointIndex].gl_Position.y;
 	}
 
 public:
@@ -137,9 +142,11 @@ public:
 		auto deltaY2 = _points[2].gl_Position.y - _points[1].gl_Position.y;
 		auto deltaY3 = _points[0].gl_Position.y - _points[2].gl_Position.y;
 
-		auto edgeF1 = EdgeFunction(_points[0].gl_Position, minX, minY, deltaX1, deltaY1);
-		auto edgeF2 = EdgeFunction(_points[1].gl_Position, minX, minY, deltaX2, deltaY2);
-		auto edgeF3 = EdgeFunction(_points[2].gl_Position, minX, minY, deltaX3, deltaY3);
+		auto edgeF1 = EdgeFunction(0, minX, minY, deltaX1, deltaY1);
+		auto edgeF2 = EdgeFunction(1, minX, minY, deltaX2, deltaY2);
+		auto edgeF3 = EdgeFunction(2, minX, minY, deltaX3, deltaY3);
+
+		auto maxPointSum = Maximum(PointSum(0), Maximum(PointSum(1), PointSum(2)));
 
 		for (auto x = minX; x <= maxX; x++)
 		{
@@ -156,7 +163,7 @@ public:
 
 					if (inFragment.gl_FragCoord.x > 0 && inFragment.gl_FragCoord.x < frame.width
 						&& inFragment.gl_FragCoord.y > 0 && inFragment.gl_FragCoord.y < frame.height
-						)//&& inFragment.gl_FragCoord.x + inFragment.gl_FragCoord.y <= sqrt((frame.width - minX) * (frame.height - minY)))
+						&& inFragment.gl_FragCoord.x + inFragment.gl_FragCoord.y <= maxPointSum)
 					{
 						OutFragment outFragment;
 						prg.fragmentShader(outFragment, inFragment, prg.uniforms);
