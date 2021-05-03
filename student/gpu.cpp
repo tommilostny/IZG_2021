@@ -78,8 +78,8 @@ class Triangle
 private:
 	OutVertex _points[3];
 
-	inline float Minimum(float a, float b) { return a > b ? b : a; }
-	inline float Maximum(float a, float b) { return a > b ? a : b; }
+	static inline float Min(float a, float b) { return a > b ? b : a; }
+	static inline float Max(float a, float b) { return a > b ? a : b; }
 
 	inline float EdgeFunction(uint8_t pointIndex, float x, float y, float deltaX, float deltaY)
 	{
@@ -121,18 +121,19 @@ public:
 		}
 	}
 
-	//Rasterize triangle with Pineda algorithm
+	//Rasterizace trojúhelníka Pinedovým algoritmem
 	void Rasterize(Frame &frame, Program &prg)
 	{
-		auto minX = Minimum(_points[0].gl_Position.x, Minimum(_points[1].gl_Position.x, _points[2].gl_Position.x));
-		auto minY = Minimum(_points[0].gl_Position.y, Minimum(_points[1].gl_Position.y, _points[2].gl_Position.y));
-		auto maxX = Maximum(_points[0].gl_Position.x, Maximum(_points[1].gl_Position.x, _points[2].gl_Position.x));
-		auto maxY = Maximum(_points[0].gl_Position.y, Maximum(_points[1].gl_Position.y, _points[2].gl_Position.y));
+		//Obalový obdélník trojúhelníku
+		auto minX = Min(_points[0].gl_Position.x, Min(_points[1].gl_Position.x, _points[2].gl_Position.x));
+		auto minY = Min(_points[0].gl_Position.y, Min(_points[1].gl_Position.y, _points[2].gl_Position.y));
+		auto maxX = Max(_points[0].gl_Position.x, Max(_points[1].gl_Position.x, _points[2].gl_Position.x));
+		auto maxY = Max(_points[0].gl_Position.y, Max(_points[1].gl_Position.y, _points[2].gl_Position.y));
 
-		minX = Maximum(minX, 0);
-		minY = Maximum(minY, 0);
-		maxX = Minimum(maxX, frame.width - 1);
-		maxY = Minimum(maxY, frame.height - 1);
+		minX = Max(minX, 0);
+		minY = Max(minY, 0);
+		maxX = Min(maxX, frame.width - 1);
+		maxY = Min(maxY, frame.height - 1);
 
 		auto deltaX1 = _points[1].gl_Position.x - _points[0].gl_Position.x;
 		auto deltaX2 = _points[2].gl_Position.x - _points[1].gl_Position.x;
@@ -142,36 +143,42 @@ public:
 		auto deltaY2 = _points[2].gl_Position.y - _points[1].gl_Position.y;
 		auto deltaY3 = _points[0].gl_Position.y - _points[2].gl_Position.y;
 
-		auto edgeF1 = EdgeFunction(0, minX, minY, deltaX1, deltaY1);
-		auto edgeF2 = EdgeFunction(1, minX, minY, deltaX2, deltaY2);
-		auto edgeF3 = EdgeFunction(2, minX, minY, deltaX3, deltaY3);
+		//Startovací hranové funkce, pro pohyb v ose X
+		auto edgeStart1 = EdgeFunction(0, minX, minY, deltaX1, deltaY1);
+		auto edgeStart2 = EdgeFunction(1, minX, minY, deltaX2, deltaY2);
+		auto edgeStart3 = EdgeFunction(2, minX, minY, deltaX3, deltaY3);
 
-		auto maxPointSum = Maximum(PointSum(0), Maximum(PointSum(1), PointSum(2)));
+		auto hypotenuse = Max(PointSum(0), Max(PointSum(1), PointSum(2)));
 
 		for (auto x = minX; x <= maxX; x++)
 		{
-			auto e1 = edgeF1;
-			auto e2 = edgeF2;
-			auto e3 = edgeF3;
+			//Inicializace hranových funckí pro pohyb v ose Y
+			auto e1 = edgeStart1;
+			auto e2 = edgeStart2;
+			auto e3 = edgeStart3;
 
 			for (auto y = minY; y <= maxY; y++)
 			{
 				if (e1 >= 0 && e2 >= 0 && e3 >= 0)
 				{
 					InFragment inFragment;
-					inFragment.gl_FragCoord = glm::vec4(x + 0.5, y + 0.5, 0, 1);
+					inFragment.gl_FragCoord = glm::vec4(x + 0.5, y + 0.5, 0.0, 1.0);
 
 					if (inFragment.gl_FragCoord.x > 0 && inFragment.gl_FragCoord.x < frame.width
 						&& inFragment.gl_FragCoord.y > 0 && inFragment.gl_FragCoord.y < frame.height
-						&& inFragment.gl_FragCoord.x + inFragment.gl_FragCoord.y <= maxPointSum)
+						&& inFragment.gl_FragCoord.x + inFragment.gl_FragCoord.y <= hypotenuse)
 					{
 						OutFragment outFragment;
 						prg.fragmentShader(outFragment, inFragment, prg.uniforms);
 					}
 				}
-				e1 += deltaX1; e2 += deltaX2; e3 += deltaX3;
+				e1 += deltaX1;
+				e2 += deltaX2;
+				e3 += deltaX3;
 			}
-			edgeF1 -= deltaY1; edgeF2 -= deltaY2; edgeF3 -= deltaY3;
+			edgeStart1 -= deltaY1;
+			edgeStart2 -= deltaY2;
+			edgeStart3 -= deltaY3;
 		}
 	}
 };
