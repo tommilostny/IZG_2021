@@ -93,7 +93,11 @@ public:
 	void PerspectiveDivision()
 	{
 		for (uint8_t v = 0; v < 3; v++)
-			_points[v].gl_Position /= _points[v].gl_Position.w;
+		{
+			_points[v].gl_Position.x /= _points[v].gl_Position.w;
+			_points[v].gl_Position.y /= _points[v].gl_Position.w;
+			_points[v].gl_Position.z /= _points[v].gl_Position.w;
+		}
 	}
 
 	void ViewportTransformation(Frame &frame)
@@ -144,7 +148,7 @@ public:
 
 			for (auto y = minY; y <= maxY; y++)
 			{
-				if (e1 >= 0 && e2 >= 0 && e3 >= 0)
+				if (e1 >= 0 && e2 >= 0 && e3 >= 0) //Fragment je v trojúhelníku
 				{
 					InFragment inFragment;
 					inFragment.gl_FragCoord.x = x + 0.5;
@@ -154,7 +158,33 @@ public:
 						&& inFragment.gl_FragCoord.y > 0 && inFragment.gl_FragCoord.y < frame.height
 						&& inFragment.gl_FragCoord.x + inFragment.gl_FragCoord.y <= hypotenuse)
 					{
-						inFragment.gl_FragCoord.z = BarycentricCoordDepth(inFragment);
+						auto lambda0 = Lambda(2, 1, inFragment);
+						auto lambda1 = Lambda(0, 2, inFragment);
+						auto lambda2 = Lambda(1, 0, inFragment);
+
+						inFragment.gl_FragCoord.z = _points[0].gl_Position.z * lambda0
+							+ _points[1].gl_Position.z * lambda1
+							+ _points[2].gl_Position.z * lambda2;
+
+						auto h0 = _points[0].gl_Position.w;
+						auto h1 = _points[1].gl_Position.w;
+						auto h2 = _points[2].gl_Position.w;
+
+						auto s = lambda0 / h0 + lambda1 / h1 + lambda2 / h2;
+						lambda0 /= h0 * s;
+						lambda1 /= h1 * s;
+						lambda2 /= h2 * s;
+
+						for (uint32_t i = 0; i < maxAttributes; i++)
+						{
+							if (prg.vs2fs[i] == AttributeType::EMPTY)
+								continue;
+
+							inFragment.attributes[i].v3 = _points[0].attributes[i].v3 * lambda0
+								+ _points[1].attributes[i].v3 * lambda1
+								+ _points[2].attributes[i].v3 * lambda2;
+						}
+
 						OutFragment outFragment;
 						prg.fragmentShader(outFragment, inFragment, prg.uniforms);
 					}
@@ -181,13 +211,6 @@ private:
 	float PointSum(uint8_t pointIndex)
 	{
 		return _points[pointIndex].gl_Position.x + _points[pointIndex].gl_Position.y;
-	}
-
-	float BarycentricCoordDepth(InFragment &fragment)
-	{
-		return _points[0].gl_Position.z * Lambda(2, 1, fragment)
-			+ _points[1].gl_Position.z * Lambda(0, 2, fragment)
-			+ _points[2].gl_Position.z * Lambda(1, 0, fragment);
 	}
 
 	float Lambda(uint8_t pointIndex1, uint8_t pointIndex2, InFragment &fragment)
