@@ -78,19 +78,6 @@ class Triangle
 private:
 	OutVertex _points[3];
 
-	static inline float Min(float a, float b) { return a > b ? b : a; }
-	static inline float Max(float a, float b) { return a > b ? a : b; }
-
-	inline float EdgeFunction(uint8_t pointIndex, float x, float y, float deltaX, float deltaY)
-	{
-		return (y - _points[pointIndex].gl_Position.y) * deltaX - (x - _points[pointIndex].gl_Position.x) * deltaY;
-	}
-
-	inline float PointSum(uint8_t pointIndex)
-	{
-		return _points[pointIndex].gl_Position.x + _points[pointIndex].gl_Position.y;
-	}
-
 public:
 	//Primitive Assembly jako konstruktor trojúhelníka
 	Triangle(VertexArray &vao, Program &prg, uint32_t triangleId)
@@ -106,18 +93,15 @@ public:
 	void PerspectiveDivision()
 	{
 		for (uint8_t v = 0; v < 3; v++)
-		{
-			auto point = _points[v].gl_Position;
-			_points[v].gl_Position = glm::vec4(point.x / point.w, point.y / point.w, point.z / point.w, 1.0);
-		}
+			_points[v].gl_Position /= _points[v].gl_Position.w;
 	}
 
 	void ViewportTransformation(Frame &frame)
 	{
 		for (uint8_t v = 0; v < 3; v++)
 		{
-			auto point = _points[v].gl_Position;
-			_points[v].gl_Position = glm::vec4((point.x * 0.5 + 0.5) * frame.width, (point.y * 0.5 + 0.5) * frame.height, point.z, 1.0);
+			_points[v].gl_Position.x = (_points[v].gl_Position.x * 0.5 + 0.5) * frame.width;
+			_points[v].gl_Position.y = (_points[v].gl_Position.y * 0.5 + 0.5) * frame.height;
 		}
 	}
 
@@ -148,6 +132,7 @@ public:
 		auto edgeStart2 = EdgeFunction(1, minX, minY, deltaX2, deltaY2);
 		auto edgeStart3 = EdgeFunction(2, minX, minY, deltaX3, deltaY3);
 
+		//Přepona
 		auto hypotenuse = Max(PointSum(0), Max(PointSum(1), PointSum(2)));
 
 		for (auto x = minX; x <= maxX; x++)
@@ -162,7 +147,10 @@ public:
 				if (e1 >= 0 && e2 >= 0 && e3 >= 0)
 				{
 					InFragment inFragment;
-					inFragment.gl_FragCoord = glm::vec4(x + 0.5, y + 0.5, 0.0, 1.0);
+					inFragment.gl_FragCoord.x = x + 0.5;
+					inFragment.gl_FragCoord.y = y + 0.5;
+					inFragment.gl_FragCoord.z
+						= BarycentricCoordDepth(_points[0].gl_Position.z, _points[1].gl_Position.z, _points[2].gl_Position.z, inFragment);
 
 					if (inFragment.gl_FragCoord.x > 0 && inFragment.gl_FragCoord.x < frame.width
 						&& inFragment.gl_FragCoord.y > 0 && inFragment.gl_FragCoord.y < frame.height
@@ -180,6 +168,48 @@ public:
 			edgeStart2 -= deltaY2;
 			edgeStart3 -= deltaY3;
 		}
+	}
+
+private:
+	static inline float Min(float a, float b) { return a > b ? b : a; }
+	static inline float Max(float a, float b) { return a > b ? a : b; }
+
+	float EdgeFunction(uint8_t pointIndex, float x, float y, float deltaX, float deltaY)
+	{
+		return (y - _points[pointIndex].gl_Position.y) * deltaX - (x - _points[pointIndex].gl_Position.x) * deltaY;
+	}
+
+	float PointSum(uint8_t pointIndex)
+	{
+		return _points[pointIndex].gl_Position.x + _points[pointIndex].gl_Position.y;
+	}
+
+	float BarycentricCoordDepth(float z0, float z1, float z2, InFragment &fragment)
+	{
+		return z0 * Lambda(2, 1, fragment) + z1 * Lambda(0, 2, fragment) + z2 * Lambda(1, 0, fragment);
+	}
+
+	float Lambda(uint8_t pointIndex1, uint8_t pointIndex2, InFragment &fragment)
+	{
+		auto wholeTriangle = Area(_points[0].gl_Position.x, _points[0].gl_Position.y,
+									_points[1].gl_Position.x, _points[1].gl_Position.y,
+									_points[2].gl_Position.x, _points[2].gl_Position.y);
+
+		auto subTriangle = Area(_points[pointIndex1].gl_Position.x, _points[pointIndex1].gl_Position.y,
+								_points[pointIndex2].gl_Position.x, _points[pointIndex2].gl_Position.y,
+								fragment.gl_FragCoord.x, fragment.gl_FragCoord.y);
+
+		return subTriangle / wholeTriangle;
+	}
+
+	static float Area(float ax, float ay, float bx, float by, float cx, float cy)
+	{
+		auto a = sqrt(pow(cx - bx, 2) + pow(cy - by, 2));
+		auto b = sqrt(pow(ax - cx, 2) + pow(ay - cy, 2));
+		auto c = sqrt(pow(bx - ax, 2) + pow(by - ay, 2));
+
+		auto s = (a + b + c) / 2.0;
+		return sqrt(s * (s - a) * (s - b) * (s - c));
 	}
 };
 
