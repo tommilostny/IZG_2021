@@ -149,13 +149,12 @@ public:
 					InFragment inFragment;
 					inFragment.gl_FragCoord.x = x + 0.5;
 					inFragment.gl_FragCoord.y = y + 0.5;
-					inFragment.gl_FragCoord.z
-						= BarycentricCoordDepth(_points[0].gl_Position.z, _points[1].gl_Position.z, _points[2].gl_Position.z, inFragment);
 
 					if (inFragment.gl_FragCoord.x > 0 && inFragment.gl_FragCoord.x < frame.width
 						&& inFragment.gl_FragCoord.y > 0 && inFragment.gl_FragCoord.y < frame.height
 						&& inFragment.gl_FragCoord.x + inFragment.gl_FragCoord.y <= hypotenuse)
 					{
+						inFragment.gl_FragCoord.z = BarycentricCoordDepth(inFragment);
 						OutFragment outFragment;
 						prg.fragmentShader(outFragment, inFragment, prg.uniforms);
 					}
@@ -184,16 +183,18 @@ private:
 		return _points[pointIndex].gl_Position.x + _points[pointIndex].gl_Position.y;
 	}
 
-	float BarycentricCoordDepth(float z0, float z1, float z2, InFragment &fragment)
+	float BarycentricCoordDepth(InFragment &fragment)
 	{
-		return z0 * Lambda(2, 1, fragment) + z1 * Lambda(0, 2, fragment) + z2 * Lambda(1, 0, fragment);
+		return _points[0].gl_Position.z * Lambda(2, 1, fragment)
+			+ _points[1].gl_Position.z * Lambda(0, 2, fragment)
+			+ _points[2].gl_Position.z * Lambda(1, 0, fragment);
 	}
 
 	float Lambda(uint8_t pointIndex1, uint8_t pointIndex2, InFragment &fragment)
 	{
 		auto wholeTriangle = Area(_points[0].gl_Position.x, _points[0].gl_Position.y,
-									_points[1].gl_Position.x, _points[1].gl_Position.y,
-									_points[2].gl_Position.x, _points[2].gl_Position.y);
+								_points[1].gl_Position.x, _points[1].gl_Position.y,
+								_points[2].gl_Position.x, _points[2].gl_Position.y);
 
 		auto subTriangle = Area(_points[pointIndex1].gl_Position.x, _points[pointIndex1].gl_Position.y,
 								_points[pointIndex2].gl_Position.x, _points[pointIndex2].gl_Position.y,
