@@ -151,40 +151,8 @@ public:
 				if (e1 >= 0 && e2 >= 0 && e3 >= 0) //Fragment je v trojúhelníku
 				{
 					InFragment inFragment;
-					inFragment.gl_FragCoord.x = x + 0.5;
-					inFragment.gl_FragCoord.y = y + 0.5;
-
-					if (inFragment.gl_FragCoord.x > 0 && inFragment.gl_FragCoord.x < frame.width
-						&& inFragment.gl_FragCoord.y > 0 && inFragment.gl_FragCoord.y < frame.height
-						&& inFragment.gl_FragCoord.x + inFragment.gl_FragCoord.y <= hypotenuse)
+					if (CreateFragment(inFragment, x, y, hypotenuse, frame, prg.vs2fs))
 					{
-						auto lambda0 = Lambda(2, 1, inFragment);
-						auto lambda1 = Lambda(0, 2, inFragment);
-						auto lambda2 = Lambda(1, 0, inFragment);
-
-						inFragment.gl_FragCoord.z = _points[0].gl_Position.z * lambda0
-							+ _points[1].gl_Position.z * lambda1
-							+ _points[2].gl_Position.z * lambda2;
-
-						auto h0 = _points[0].gl_Position.w;
-						auto h1 = _points[1].gl_Position.w;
-						auto h2 = _points[2].gl_Position.w;
-
-						auto s = lambda0 / h0 + lambda1 / h1 + lambda2 / h2;
-						lambda0 /= h0 * s;
-						lambda1 /= h1 * s;
-						lambda2 /= h2 * s;
-
-						for (uint32_t i = 0; i < maxAttributes; i++)
-						{
-							if (prg.vs2fs[i] == AttributeType::EMPTY)
-								continue;
-
-							inFragment.attributes[i].v3 = _points[0].attributes[i].v3 * lambda0
-								+ _points[1].attributes[i].v3 * lambda1
-								+ _points[2].attributes[i].v3 * lambda2;
-						}
-
 						OutFragment outFragment;
 						prg.fragmentShader(outFragment, inFragment, prg.uniforms);
 					}
@@ -211,6 +179,46 @@ private:
 	float PointSum(uint8_t pointIndex)
 	{
 		return _points[pointIndex].gl_Position.x + _points[pointIndex].gl_Position.y;
+	}
+
+	bool CreateFragment(InFragment &inFragment, float x, float y, float hypotenuse, Frame &frame, AttributeType *vs2fs)
+	{
+		inFragment.gl_FragCoord.x = x + 0.5;
+		inFragment.gl_FragCoord.y = y + 0.5;
+
+		if (inFragment.gl_FragCoord.x > 0 && inFragment.gl_FragCoord.x < frame.width
+			&& inFragment.gl_FragCoord.y > 0 && inFragment.gl_FragCoord.y < frame.height
+			&& inFragment.gl_FragCoord.x + inFragment.gl_FragCoord.y <= hypotenuse)
+		{
+			auto lambda0 = Lambda(2, 1, inFragment);
+			auto lambda1 = Lambda(0, 2, inFragment);
+			auto lambda2 = Lambda(1, 0, inFragment);
+
+			inFragment.gl_FragCoord.z = _points[0].gl_Position.z * lambda0
+				+ _points[1].gl_Position.z * lambda1
+				+ _points[2].gl_Position.z * lambda2;
+
+			auto h0 = _points[0].gl_Position.w;
+			auto h1 = _points[1].gl_Position.w;
+			auto h2 = _points[2].gl_Position.w;
+
+			auto s = lambda0 / h0 + lambda1 / h1 + lambda2 / h2;
+			lambda0 /= h0 * s;
+			lambda1 /= h1 * s;
+			lambda2 /= h2 * s;
+
+			for (uint32_t i = 0; i < maxAttributes; i++)
+			{
+				if (vs2fs[i] == AttributeType::EMPTY)
+					continue;
+
+				inFragment.attributes[i].v3 = _points[0].attributes[i].v3 * lambda0
+					+ _points[1].attributes[i].v3 * lambda1
+					+ _points[2].attributes[i].v3 * lambda2;
+			}
+			return true;
+		}
+		return false;
 	}
 
 	float Lambda(uint8_t pointIndex1, uint8_t pointIndex2, InFragment &fragment)
