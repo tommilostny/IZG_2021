@@ -214,11 +214,12 @@ protected:
 		auto bufferIndex = x + y * frame.width;
 		if (fragmentDepth < frame.depth[bufferIndex]) //Depth test
 		{
-			frame.depth[bufferIndex] = fragmentDepth;
+			auto alpha = outFragment.gl_FragColor.a;
+			
+			if (alpha > 0.5) frame.depth[bufferIndex] = fragmentDepth;
 			bufferIndex <<= 2;
 			
 			//Blending
-			auto alpha = outFragment.gl_FragColor.a;
 			frame.color[bufferIndex] = ClampColor((frame.color[bufferIndex] / 255.0) * (1 - alpha) + outFragment.gl_FragColor.r * alpha, 0, 1) * 255;
 			frame.color[bufferIndex + 1] = ClampColor((frame.color[bufferIndex + 1] / 255.0) * (1 - alpha) + outFragment.gl_FragColor.g * alpha, 0, 1) * 255;
 			frame.color[bufferIndex + 2] = ClampColor((frame.color[bufferIndex + 2] / 255.0) * (1 - alpha) + outFragment.gl_FragColor.b * alpha, 0, 1) * 255;
