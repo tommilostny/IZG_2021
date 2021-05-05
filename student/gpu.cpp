@@ -155,15 +155,7 @@ public:
 					{
 						OutFragment outFragment;
 						prg.fragmentShader(outFragment, inFragment, prg.uniforms);
-
-						auto bufferIndex = x + y * frame.width;
-						frame.depth[bufferIndex] = inFragment.gl_FragCoord.z;
-
-						bufferIndex <<= 2;
-						frame.color[bufferIndex] = outFragment.gl_FragColor.r * 255;
-						frame.color[++bufferIndex] = outFragment.gl_FragColor.g * 255;
-						frame.color[++bufferIndex] = outFragment.gl_FragColor.b * 255;
-						frame.color[++bufferIndex] = outFragment.gl_FragColor.a * 255;	
+						PerFragmentOperations(frame, outFragment, x, y, inFragment.gl_FragCoord.z);
 					}
 				}
 				e1 += deltaX1;
@@ -176,20 +168,7 @@ public:
 		}
 	}
 
-private:
-	static inline float Min(float a, float b) { return a > b ? b : a; }
-	static inline float Max(float a, float b) { return a > b ? a : b; }
-
-	float EdgeFunction(uint8_t pointIndex, float x, float y, float deltaX, float deltaY)
-	{
-		return (y - _points[pointIndex].gl_Position.y) * deltaX - (x - _points[pointIndex].gl_Position.x) * deltaY;
-	}
-
-	float PointSum(uint8_t pointIndex)
-	{
-		return _points[pointIndex].gl_Position.x + _points[pointIndex].gl_Position.y;
-	}
-
+protected:
 	bool CreateFragment(InFragment &inFragment, float x, float y, float hypotenuse, Frame &frame, AttributeType *vs2fs)
 	{
 		inFragment.gl_FragCoord.x = x + 0.5;
@@ -221,13 +200,45 @@ private:
 				if (vs2fs[i] == AttributeType::EMPTY)
 					continue;
 
-				inFragment.attributes[i].v3 = _points[0].attributes[i].v3 * lambda0
-					+ _points[1].attributes[i].v3 * lambda1
-					+ _points[2].attributes[i].v3 * lambda2;
+				inFragment.attributes[i].v4 = _points[0].attributes[i].v4 * lambda0
+					+ _points[1].attributes[i].v4 * lambda1
+					+ _points[2].attributes[i].v4 * lambda2;
 			}
 			return true;
 		}
 		return false;
+	}
+
+	void PerFragmentOperations(Frame &frame, OutFragment &outFragment, uint32_t x, uint32_t y, float fragmentDepth)
+	{
+		auto bufferIndex = x + y * frame.width;
+		if (fragmentDepth < frame.depth[bufferIndex]) //Depth test
+		{
+			frame.depth[bufferIndex] = fragmentDepth;
+			bufferIndex <<= 2;
+			
+			//Blending
+			auto alpha = outFragment.gl_FragColor.a;
+			frame.color[bufferIndex] = ClampColor((frame.color[bufferIndex] / 255.0) * (1 - alpha) + outFragment.gl_FragColor.r * alpha, 0, 1) * 255;
+			frame.color[bufferIndex + 1] = ClampColor((frame.color[bufferIndex + 1] / 255.0) * (1 - alpha) + outFragment.gl_FragColor.g * alpha, 0, 1) * 255;
+			frame.color[bufferIndex + 2] = ClampColor((frame.color[bufferIndex + 2] / 255.0) * (1 - alpha) + outFragment.gl_FragColor.b * alpha, 0, 1) * 255;
+			frame.color[bufferIndex + 3] = ClampColor((frame.color[bufferIndex + 3] / 255.0) * (1 - alpha) + outFragment.gl_FragColor.a * alpha, 0, 1) * 255;
+		}
+	}
+
+//Pomocné Triangle privátní funkce
+private:
+	static inline float Min(float a, float b) { return a > b ? b : a; }
+	static inline float Max(float a, float b) { return a > b ? a : b; }
+
+	float EdgeFunction(uint8_t pointIndex, float x, float y, float deltaX, float deltaY)
+	{
+		return (y - _points[pointIndex].gl_Position.y) * deltaX - (x - _points[pointIndex].gl_Position.x) * deltaY;
+	}
+
+	float PointSum(uint8_t pointIndex)
+	{
+		return _points[pointIndex].gl_Position.x + _points[pointIndex].gl_Position.y;
 	}
 
 	float Lambda(uint8_t pointIndex1, uint8_t pointIndex2, InFragment &fragment)
@@ -251,6 +262,13 @@ private:
 
 		auto s = (a + b + c) / 2.0;
 		return sqrt(s * (s - a) * (s - b) * (s - c));
+	}
+
+	static float ClampColor(float color, float from, float to)
+	{
+		if (color < from) return from;
+		if (color > to) return to;
+		return color;
 	}
 };
 
