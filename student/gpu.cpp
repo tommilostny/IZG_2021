@@ -139,14 +139,14 @@ public:
 		//Přepona
 		auto hypotenuse = Max(PointSum(0), Max(PointSum(1), PointSum(2)));
 
-		for (auto x = minX; x <= maxX; x++)
+		for (uint32_t x = minX; x <= maxX; x++)
 		{
 			//Inicializace hranových funckí pro pohyb v ose Y
 			auto e1 = edgeStart1;
 			auto e2 = edgeStart2;
 			auto e3 = edgeStart3;
 
-			for (auto y = minY; y <= maxY; y++)
+			for (uint32_t y = minY; y <= maxY; y++)
 			{
 				if (e1 >= 0 && e2 >= 0 && e3 >= 0) //Fragment je v trojúhelníku
 				{
@@ -155,6 +155,15 @@ public:
 					{
 						OutFragment outFragment;
 						prg.fragmentShader(outFragment, inFragment, prg.uniforms);
+
+						auto bufferIndex = x + y * frame.width;
+						frame.depth[bufferIndex] = inFragment.gl_FragCoord.z;
+
+						bufferIndex <<= 2;
+						frame.color[bufferIndex] = outFragment.gl_FragColor.r * 255;
+						frame.color[++bufferIndex] = outFragment.gl_FragColor.g * 255;
+						frame.color[++bufferIndex] = outFragment.gl_FragColor.b * 255;
+						frame.color[++bufferIndex] = outFragment.gl_FragColor.a * 255;	
 					}
 				}
 				e1 += deltaX1;
