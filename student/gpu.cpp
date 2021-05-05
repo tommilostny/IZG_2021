@@ -174,9 +174,7 @@ protected:
 		inFragment.gl_FragCoord.x = x + 0.5;
 		inFragment.gl_FragCoord.y = y + 0.5;
 
-		if (inFragment.gl_FragCoord.x > 0 && inFragment.gl_FragCoord.x < frame.width
-			&& inFragment.gl_FragCoord.y > 0 && inFragment.gl_FragCoord.y < frame.height
-			&& inFragment.gl_FragCoord.x + inFragment.gl_FragCoord.y <= hypotenuse)
+		if (inFragment.gl_FragCoord.x + inFragment.gl_FragCoord.y <= hypotenuse) //kontrola přepony
 		{
 			auto lambda0 = Lambda(2, 1, inFragment);
 			auto lambda1 = Lambda(0, 2, inFragment);
