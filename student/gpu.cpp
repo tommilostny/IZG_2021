@@ -9,32 +9,35 @@
 
 #include <iostream> //remove on release
 
+#define MIN(a,b) ( a > b ? b : a )
+#define MAX(a,b) ( a > b ? a : b )
+
 class VertexAssembly
 {
 public:
-	static void Run(InVertex &inVertex, VertexArray &vao, uint32_t invokeNum)
+	static void Run(InVertex &inVertex, VertexArray &vao, uint32_t invokeId)
 	{
-		ComputeVertexId(inVertex, vao, invokeNum);
+		ComputeVertexId(inVertex, vao, invokeId);
 		ReadAttributes(inVertex, vao);
 	}
 
 private:
-	static void ComputeVertexId(InVertex &inVertex, VertexArray &vao, uint32_t invokeNum)
+	static void ComputeVertexId(InVertex &inVertex, VertexArray &vao, uint32_t invokeId)
 	{
 		if (vao.indexBuffer == nullptr)
 		{
-			inVertex.gl_VertexID = invokeNum;
+			inVertex.gl_VertexID = invokeId;
 		}
 		else switch (vao.indexType)
 		{
 		case IndexType::UINT8:
-			inVertex.gl_VertexID = ((uint8_t*)vao.indexBuffer)[invokeNum];
+			inVertex.gl_VertexID = ((uint8_t*)vao.indexBuffer)[invokeId];
 			break;
 		case IndexType::UINT16:
-			inVertex.gl_VertexID = ((uint16_t*)vao.indexBuffer)[invokeNum];
+			inVertex.gl_VertexID = ((uint16_t*)vao.indexBuffer)[invokeId];
 			break;
 		case IndexType::UINT32:
-			inVertex.gl_VertexID = ((uint32_t*)vao.indexBuffer)[invokeNum];
+			inVertex.gl_VertexID = ((uint32_t*)vao.indexBuffer)[invokeId];
 			break;
 		}
 	}
@@ -48,27 +51,8 @@ private:
 
 			auto ptr = (uint8_t*)vao.vertexAttrib[i].bufferData + vao.vertexAttrib[i].stride * inVertex.gl_VertexID + vao.vertexAttrib[i].offset;
 
-			switch (vao.vertexAttrib[i].type)
-			{
-			case AttributeType::FLOAT:
-				inVertex.attributes[i].v1 = *(float*)ptr;
-				break;
-			case AttributeType::VEC2:
-				inVertex.attributes[i].v2.x = *(float*)ptr;
-				inVertex.attributes[i].v2.y = *(float*)(ptr + sizeof(float));
-				break;
-			case AttributeType::VEC3:
-				inVertex.attributes[i].v3.x = *(float*)ptr;
-				inVertex.attributes[i].v3.y = *(float*)(ptr + sizeof(float));
-				inVertex.attributes[i].v3.z = *(float*)(ptr + 2 * sizeof(float));
-				break;
-			case AttributeType::VEC4:
-				inVertex.attributes[i].v4.x = *(float*)ptr;
-				inVertex.attributes[i].v4.y = *(float*)(ptr + sizeof(float));
-				inVertex.attributes[i].v4.z = *(float*)(ptr + 2 * sizeof(float));
-				inVertex.attributes[i].v4.w = *(float*)(ptr + 3 * sizeof(float));
-				break;
-			}
+			for (int j = 0; j < (int)vao.vertexAttrib[i].type; j++)
+				inVertex.attributes[i].v4[j] = *(float*)(ptr + j * sizeof(float));
 		}
 	}
 };
@@ -113,15 +97,15 @@ public:
 	void Rasterize(Frame &frame, Program &prg)
 	{
 		//Obalový obdélník trojúhelníku
-		auto minX = Min(_points[0].gl_Position.x, Min(_points[1].gl_Position.x, _points[2].gl_Position.x));
-		auto minY = Min(_points[0].gl_Position.y, Min(_points[1].gl_Position.y, _points[2].gl_Position.y));
-		auto maxX = Max(_points[0].gl_Position.x, Max(_points[1].gl_Position.x, _points[2].gl_Position.x));
-		auto maxY = Max(_points[0].gl_Position.y, Max(_points[1].gl_Position.y, _points[2].gl_Position.y));
+		auto minX = MIN(_points[0].gl_Position.x, MIN(_points[1].gl_Position.x, _points[2].gl_Position.x));
+		auto minY = MIN(_points[0].gl_Position.y, MIN(_points[1].gl_Position.y, _points[2].gl_Position.y));
+		auto maxX = MAX(_points[0].gl_Position.x, MAX(_points[1].gl_Position.x, _points[2].gl_Position.x));
+		auto maxY = MAX(_points[0].gl_Position.y, MAX(_points[1].gl_Position.y, _points[2].gl_Position.y));
 
-		minX = Max(minX, 0);
-		minY = Max(minY, 0);
-		maxX = Min(maxX, frame.width - 1);
-		maxY = Min(maxY, frame.height - 1);
+		minX = MAX(minX, 0);
+		minY = MAX(minY, 0);
+		maxX = MIN(maxX, frame.width - 1);
+		maxY = MIN(maxY, frame.height - 1);
 
 		auto deltaX1 = _points[1].gl_Position.x - _points[0].gl_Position.x;
 		auto deltaX2 = _points[2].gl_Position.x - _points[1].gl_Position.x;
@@ -137,19 +121,19 @@ public:
 		auto edgeStart3 = EdgeFunction(2, minX, minY, deltaX3, deltaY3);
 
 		//Předpočítání přepony a obsahu celého trojúhelníku
-		auto hypotenuse = Max(PointSum(0), Max(PointSum(1), PointSum(2)));
+		auto hypotenuse = MAX(PointSum(0), MAX(PointSum(1), PointSum(2)));
 		auto triangleArea = Area(_points[0].gl_Position.x, _points[0].gl_Position.y,
 							_points[1].gl_Position.x, _points[1].gl_Position.y,
 							_points[2].gl_Position.x, _points[2].gl_Position.y);
 
-		for (uint32_t x = minX; x <= maxX; x++)
+		for (int x = minX; x <= maxX; x++)
 		{
 			//Inicializace hranových funckí pro pohyb v ose Y
 			auto e1 = edgeStart1;
 			auto e2 = edgeStart2;
 			auto e3 = edgeStart3;
 
-			for (uint32_t y = minY; y <= maxY; y++)
+			for (int y = minY; y <= maxY; y++)
 			{
 				if (e1 >= 0 && e2 >= 0 && e3 >= 0) //Fragment je v trojúhelníku
 				{
@@ -230,9 +214,6 @@ protected:
 
 //Pomocné Triangle privátní funkce
 private:
-	static inline float Min(float a, float b) { return a > b ? b : a; }
-	static inline float Max(float a, float b) { return a > b ? a : b; }
-
 	inline float EdgeFunction(uint8_t pointIndex, float x, float y, float deltaX, float deltaY)
 	{
 		return (y - _points[pointIndex].gl_Position.y) * deltaX - (x - _points[pointIndex].gl_Position.x) * deltaY;
@@ -262,11 +243,9 @@ private:
 		return sqrt(s * (s - a) * (s - b) * (s - c));
 	}
 
-	static float ClampColor(float color, float from, float to)
+	static inline float ClampColor(float color, float from, float to)
 	{
-		if (color < from) return from;
-		if (color > to) return to;
-		return color;
+		return color < from ? from : (color > to ? to : color);
 	}
 };
 
