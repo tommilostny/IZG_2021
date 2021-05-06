@@ -202,13 +202,10 @@ protected:
 			auto alpha = outFragment.gl_FragColor.a;
 			
 			if (alpha > 0.5) frame.depth[bufferIndex] = fragmentDepth;
-			bufferIndex <<= 2;
+			bufferIndex <<= 2;		
 			
-			//Blending
-			frame.color[bufferIndex] = ClampColor((frame.color[bufferIndex] / 255.0) * (1 - alpha) + outFragment.gl_FragColor.r * alpha, 0, 1) * 255;
-			frame.color[bufferIndex + 1] = ClampColor((frame.color[bufferIndex + 1] / 255.0) * (1 - alpha) + outFragment.gl_FragColor.g * alpha, 0, 1) * 255;
-			frame.color[bufferIndex + 2] = ClampColor((frame.color[bufferIndex + 2] / 255.0) * (1 - alpha) + outFragment.gl_FragColor.b * alpha, 0, 1) * 255;
-			frame.color[bufferIndex + 3] = ClampColor((frame.color[bufferIndex + 3] / 255.0) * (1 - alpha) + outFragment.gl_FragColor.a * alpha, 0, 1) * 255;
+			for (uint8_t i = 0; i < 4; i++) //Blending
+				frame.color[bufferIndex + i] = ClampColor((frame.color[bufferIndex + i] / 255.f) * (1 - alpha) + outFragment.gl_FragColor[i] * alpha, 0, 1) * 255;
 		}
 	}
 
@@ -249,6 +246,11 @@ private:
 	}
 };
 
+void performClipping(std::vector<Triangle*> &clippedTriangles, Triangle *triangle)
+{
+	clippedTriangles.push_back(triangle);
+}
+
 //! [drawTrianglesImpl]
 void drawTrianglesImpl(GPUContext &ctx, uint32_t nofVertices){
 	(void)ctx;
@@ -262,11 +264,16 @@ void drawTrianglesImpl(GPUContext &ctx, uint32_t nofVertices){
 	{
 		auto triangle = new Triangle(ctx.vao, ctx.prg, t);
 
-		triangle->PerspectiveDivision();
-		triangle->ViewportTransformation(ctx.frame);
-		triangle->Rasterize(ctx.frame, ctx.prg);
+		std::vector<Triangle*> clippedTriangles;
+		performClipping(clippedTriangles, triangle);
 
-		delete triangle;
+		for (auto clippedTriangle : clippedTriangles)
+		{
+			clippedTriangle->PerspectiveDivision();
+			clippedTriangle->ViewportTransformation(ctx.frame);
+			clippedTriangle->Rasterize(ctx.frame, ctx.prg);
+			delete clippedTriangle;
+		}
 	}
 }
 //! [drawTrianglesImpl]
