@@ -136,8 +136,11 @@ public:
 		auto edgeStart2 = EdgeFunction(1, minX, minY, deltaX2, deltaY2);
 		auto edgeStart3 = EdgeFunction(2, minX, minY, deltaX3, deltaY3);
 
-		//Přepona
+		//Předpočítání přepony a obsahu celého trojúhelníku
 		auto hypotenuse = Max(PointSum(0), Max(PointSum(1), PointSum(2)));
+		auto triangleArea = Area(_points[0].gl_Position.x, _points[0].gl_Position.y,
+							_points[1].gl_Position.x, _points[1].gl_Position.y,
+							_points[2].gl_Position.x, _points[2].gl_Position.y);
 
 		for (uint32_t x = minX; x <= maxX; x++)
 		{
@@ -151,7 +154,7 @@ public:
 				if (e1 >= 0 && e2 >= 0 && e3 >= 0) //Fragment je v trojúhelníku
 				{
 					InFragment inFragment;
-					if (CreateFragment(inFragment, x, y, hypotenuse, frame, prg.vs2fs))
+					if (CreateFragment(inFragment, x, y, frame, prg.vs2fs, hypotenuse, triangleArea))
 					{
 						OutFragment outFragment;
 						prg.fragmentShader(outFragment, inFragment, prg.uniforms);
@@ -169,16 +172,16 @@ public:
 	}
 
 protected:
-	bool CreateFragment(InFragment &inFragment, float x, float y, float hypotenuse, Frame &frame, AttributeType *vs2fs)
+	bool CreateFragment(InFragment &inFragment, float x, float y, Frame &frame, AttributeType *vs2fs, float hypotenuse, float triangleArea)
 	{
 		inFragment.gl_FragCoord.x = x + 0.5;
 		inFragment.gl_FragCoord.y = y + 0.5;
 
 		if (inFragment.gl_FragCoord.x + inFragment.gl_FragCoord.y <= hypotenuse) //kontrola přepony
 		{
-			auto lambda0 = Lambda(2, 1, inFragment);
-			auto lambda1 = Lambda(0, 2, inFragment);
-			auto lambda2 = Lambda(1, 0, inFragment);
+			auto lambda0 = Lambda(2, 1, inFragment, triangleArea);
+			auto lambda1 = Lambda(0, 2, inFragment, triangleArea);
+			auto lambda2 = Lambda(1, 0, inFragment, triangleArea);
 
 			inFragment.gl_FragCoord.z = _points[0].gl_Position.z * lambda0
 				+ _points[1].gl_Position.z * lambda1
@@ -230,27 +233,23 @@ private:
 	static inline float Min(float a, float b) { return a > b ? b : a; }
 	static inline float Max(float a, float b) { return a > b ? a : b; }
 
-	float EdgeFunction(uint8_t pointIndex, float x, float y, float deltaX, float deltaY)
+	inline float EdgeFunction(uint8_t pointIndex, float x, float y, float deltaX, float deltaY)
 	{
 		return (y - _points[pointIndex].gl_Position.y) * deltaX - (x - _points[pointIndex].gl_Position.x) * deltaY;
 	}
 
-	float PointSum(uint8_t pointIndex)
+	inline float PointSum(uint8_t pointIndex)
 	{
 		return _points[pointIndex].gl_Position.x + _points[pointIndex].gl_Position.y;
 	}
 
-	float Lambda(uint8_t pointIndex1, uint8_t pointIndex2, InFragment &fragment)
+	float Lambda(uint8_t pointIndex1, uint8_t pointIndex2, InFragment &fragment, float wholeTriangleArea)
 	{
-		auto wholeTriangle = Area(_points[0].gl_Position.x, _points[0].gl_Position.y,
-								_points[1].gl_Position.x, _points[1].gl_Position.y,
-								_points[2].gl_Position.x, _points[2].gl_Position.y);
-
 		auto subTriangle = Area(_points[pointIndex1].gl_Position.x, _points[pointIndex1].gl_Position.y,
 								_points[pointIndex2].gl_Position.x, _points[pointIndex2].gl_Position.y,
 								fragment.gl_FragCoord.x, fragment.gl_FragCoord.y);
 
-		return subTriangle / wholeTriangle;
+		return subTriangle / wholeTriangleArea;
 	}
 
 	static float Area(float ax, float ay, float bx, float by, float cx, float cy)
