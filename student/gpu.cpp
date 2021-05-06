@@ -59,10 +59,9 @@ private:
 
 class Triangle
 {
-private:
-	OutVertex _points[3];
-
 public:
+	OutVertex Points[3];
+
 	//Primitive Assembly jako konstruktor trojúhelníka
 	Triangle(VertexArray &vao, Program &prg, uint32_t triangleId)
 	{
@@ -70,17 +69,19 @@ public:
 		{
 			InVertex inVertex;
 			VertexAssembly::Run(inVertex, vao, v);
-			prg.vertexShader(_points[v - triangleId], inVertex, prg.uniforms);
+			prg.vertexShader(Points[v - triangleId], inVertex, prg.uniforms);
 		}
 	}
+
+	Triangle() { }
 
 	void PerspectiveDivision()
 	{
 		for (uint8_t v = 0; v < 3; v++)
 		{
-			_points[v].gl_Position.x /= _points[v].gl_Position.w;
-			_points[v].gl_Position.y /= _points[v].gl_Position.w;
-			_points[v].gl_Position.z /= _points[v].gl_Position.w;
+			Points[v].gl_Position.x /= Points[v].gl_Position.w;
+			Points[v].gl_Position.y /= Points[v].gl_Position.w;
+			Points[v].gl_Position.z /= Points[v].gl_Position.w;
 		}
 	}
 
@@ -88,8 +89,8 @@ public:
 	{
 		for (uint8_t v = 0; v < 3; v++)
 		{
-			_points[v].gl_Position.x = (_points[v].gl_Position.x * 0.5 + 0.5) * frame.width;
-			_points[v].gl_Position.y = (_points[v].gl_Position.y * 0.5 + 0.5) * frame.height;
+			Points[v].gl_Position.x = (Points[v].gl_Position.x * 0.5 + 0.5) * frame.width;
+			Points[v].gl_Position.y = (Points[v].gl_Position.y * 0.5 + 0.5) * frame.height;
 		}
 	}
 
@@ -97,23 +98,23 @@ public:
 	void Rasterize(Frame &frame, Program &prg)
 	{
 		//Obalový obdélník trojúhelníku
-		auto minX = MIN(_points[0].gl_Position.x, MIN(_points[1].gl_Position.x, _points[2].gl_Position.x));
-		auto minY = MIN(_points[0].gl_Position.y, MIN(_points[1].gl_Position.y, _points[2].gl_Position.y));
-		auto maxX = MAX(_points[0].gl_Position.x, MAX(_points[1].gl_Position.x, _points[2].gl_Position.x));
-		auto maxY = MAX(_points[0].gl_Position.y, MAX(_points[1].gl_Position.y, _points[2].gl_Position.y));
+		auto minX = MIN(Points[0].gl_Position.x, MIN(Points[1].gl_Position.x, Points[2].gl_Position.x));
+		auto minY = MIN(Points[0].gl_Position.y, MIN(Points[1].gl_Position.y, Points[2].gl_Position.y));
+		auto maxX = MAX(Points[0].gl_Position.x, MAX(Points[1].gl_Position.x, Points[2].gl_Position.x));
+		auto maxY = MAX(Points[0].gl_Position.y, MAX(Points[1].gl_Position.y, Points[2].gl_Position.y));
 
 		minX = MAX(minX, 0);
 		minY = MAX(minY, 0);
 		maxX = MIN(maxX, frame.width - 1);
 		maxY = MIN(maxY, frame.height - 1);
 
-		auto deltaX1 = _points[1].gl_Position.x - _points[0].gl_Position.x;
-		auto deltaX2 = _points[2].gl_Position.x - _points[1].gl_Position.x;
-		auto deltaX3 = _points[0].gl_Position.x - _points[2].gl_Position.x;
+		auto deltaX1 = Points[1].gl_Position.x - Points[0].gl_Position.x;
+		auto deltaX2 = Points[2].gl_Position.x - Points[1].gl_Position.x;
+		auto deltaX3 = Points[0].gl_Position.x - Points[2].gl_Position.x;
 
-		auto deltaY1 = _points[1].gl_Position.y - _points[0].gl_Position.y;
-		auto deltaY2 = _points[2].gl_Position.y - _points[1].gl_Position.y;
-		auto deltaY3 = _points[0].gl_Position.y - _points[2].gl_Position.y;
+		auto deltaY1 = Points[1].gl_Position.y - Points[0].gl_Position.y;
+		auto deltaY2 = Points[2].gl_Position.y - Points[1].gl_Position.y;
+		auto deltaY3 = Points[0].gl_Position.y - Points[2].gl_Position.y;
 
 		//Startovací hranové funkce, pro pohyb v ose X
 		auto edgeStart1 = EdgeFunction(0, minX, minY, deltaX1, deltaY1);
@@ -122,9 +123,9 @@ public:
 
 		//Předpočítání přepony a obsahu celého trojúhelníku
 		auto hypotenuse = MAX(PointSum(0), MAX(PointSum(1), PointSum(2)));
-		auto triangleArea = Area(_points[0].gl_Position.x, _points[0].gl_Position.y,
-							_points[1].gl_Position.x, _points[1].gl_Position.y,
-							_points[2].gl_Position.x, _points[2].gl_Position.y);
+		auto triangleArea = Area(Points[0].gl_Position.x, Points[0].gl_Position.y,
+							Points[1].gl_Position.x, Points[1].gl_Position.y,
+							Points[2].gl_Position.x, Points[2].gl_Position.y);
 
 		for (int x = minX; x <= maxX; x++)
 		{
@@ -167,13 +168,13 @@ protected:
 			auto lambda1 = Lambda(0, 2, inFragment, triangleArea);
 			auto lambda2 = Lambda(1, 0, inFragment, triangleArea);
 
-			inFragment.gl_FragCoord.z = _points[0].gl_Position.z * lambda0
-				+ _points[1].gl_Position.z * lambda1
-				+ _points[2].gl_Position.z * lambda2;
+			inFragment.gl_FragCoord.z = Points[0].gl_Position.z * lambda0
+				+ Points[1].gl_Position.z * lambda1
+				+ Points[2].gl_Position.z * lambda2;
 
-			auto h0 = _points[0].gl_Position.w;
-			auto h1 = _points[1].gl_Position.w;
-			auto h2 = _points[2].gl_Position.w;
+			auto h0 = Points[0].gl_Position.w;
+			auto h1 = Points[1].gl_Position.w;
+			auto h2 = Points[2].gl_Position.w;
 
 			auto s = lambda0 / h0 + lambda1 / h1 + lambda2 / h2;
 			lambda0 /= h0 * s;
@@ -185,9 +186,9 @@ protected:
 				if (vs2fs[i] == AttributeType::EMPTY)
 					continue;
 
-				inFragment.attributes[i].v4 = _points[0].attributes[i].v4 * lambda0
-					+ _points[1].attributes[i].v4 * lambda1
-					+ _points[2].attributes[i].v4 * lambda2;
+				inFragment.attributes[i].v4 = Points[0].attributes[i].v4 * lambda0
+					+ Points[1].attributes[i].v4 * lambda1
+					+ Points[2].attributes[i].v4 * lambda2;
 			}
 			return true;
 		}
@@ -213,18 +214,18 @@ protected:
 private:
 	inline float EdgeFunction(uint8_t pointIndex, float x, float y, float deltaX, float deltaY)
 	{
-		return (y - _points[pointIndex].gl_Position.y) * deltaX - (x - _points[pointIndex].gl_Position.x) * deltaY;
+		return (y - Points[pointIndex].gl_Position.y) * deltaX - (x - Points[pointIndex].gl_Position.x) * deltaY;
 	}
 
 	inline float PointSum(uint8_t pointIndex)
 	{
-		return _points[pointIndex].gl_Position.x + _points[pointIndex].gl_Position.y;
+		return Points[pointIndex].gl_Position.x + Points[pointIndex].gl_Position.y;
 	}
 
 	float Lambda(uint8_t pointIndex1, uint8_t pointIndex2, InFragment &fragment, float wholeTriangleArea)
 	{
-		auto subTriangle = Area(_points[pointIndex1].gl_Position.x, _points[pointIndex1].gl_Position.y,
-								_points[pointIndex2].gl_Position.x, _points[pointIndex2].gl_Position.y,
+		auto subTriangle = Area(Points[pointIndex1].gl_Position.x, Points[pointIndex1].gl_Position.y,
+								Points[pointIndex2].gl_Position.x, Points[pointIndex2].gl_Position.y,
 								fragment.gl_FragCoord.x, fragment.gl_FragCoord.y);
 
 		return subTriangle / wholeTriangleArea;
@@ -246,10 +247,75 @@ private:
 	}
 };
 
-void performClipping(std::vector<Triangle*> &clippedTriangles, Triangle *triangle)
+class Clipping
 {
-	clippedTriangles.push_back(triangle);
-}
+public:
+	static void Perform(std::vector<Triangle*> &clippedTriangles, Triangle *triangle)
+	{
+		std::vector<glm::vec4*> pointsInClipSpace;
+		std::vector<glm::vec4*> pointsToClip;
+
+		for (uint8_t i = 0; i < 3; i++)
+		{
+			if (-triangle->Points[i].gl_Position.w <= triangle->Points[i].gl_Position.z)
+				pointsInClipSpace.push_back(&triangle->Points[i].gl_Position);
+			else
+				pointsToClip.push_back(&triangle->Points[i].gl_Position);
+		}
+
+		glm::vec4 A, B, C, D;
+		Triangle *newClipped;
+		switch (pointsInClipSpace.size())
+		{
+		case 2: //Dva body v clip space -> rozdvojení trojúhelníku
+			newClipped = new Triangle();
+			newClipped->Points[0] = triangle->Points[0];
+			newClipped->Points[1] = triangle->Points[1];
+			newClipped->Points[2] = triangle->Points[2];
+
+			A = *pointsInClipSpace[0];
+			B = NewClippedPoint(*pointsToClip[0], *pointsInClipSpace[0]);
+			C = *pointsInClipSpace[1];
+			D = NewClippedPoint(*pointsInClipSpace[1], *pointsToClip[0]);
+			
+			//Úprava bodů v původním trojúhelníku
+			*pointsInClipSpace[0] = A;
+			*pointsToClip[0] = B;
+			*pointsInClipSpace[1] = C;
+
+			//Nastavení bodů v druhém trojúhelníku
+			newClipped->Points[0].gl_Position = B;
+			newClipped->Points[1].gl_Position = C;
+			newClipped->Points[2].gl_Position = D;
+
+			clippedTriangles.push_back(newClipped);
+			clippedTriangles.push_back(triangle);
+			return;
+
+		case 1: //Jeden bod v clip space -> úprava původního trojúhelníku
+			A = NewClippedPoint(*pointsToClip[0], *pointsInClipSpace[0]);
+			B = *pointsInClipSpace[0];
+			C = NewClippedPoint(*pointsToClip[1], *pointsInClipSpace[0]);
+			*pointsToClip[0] = A;
+			*pointsInClipSpace[0] = B;
+			*pointsToClip[1] = C;
+
+		case 3: //Všechny vrcholy trojúhelníku jsou v clip space -> přidá do vectoru původní trojúhelník
+			clippedTriangles.push_back(triangle);
+			return;
+
+		default: //Trojúhelník je mimo clip space
+			delete triangle;
+		}
+	}
+
+private:
+	static inline glm::vec4 NewClippedPoint(glm::vec4 fromPoint, glm::vec4 toPoint)
+	{
+		auto t = (-fromPoint.w - fromPoint.z) / (toPoint.w - fromPoint.w + toPoint.z - fromPoint.z);
+		return fromPoint + t * (toPoint - fromPoint);
+	}
+};
 
 //! [drawTrianglesImpl]
 void drawTrianglesImpl(GPUContext &ctx, uint32_t nofVertices){
@@ -265,7 +331,7 @@ void drawTrianglesImpl(GPUContext &ctx, uint32_t nofVertices){
 		auto triangle = new Triangle(ctx.vao, ctx.prg, t);
 
 		std::vector<Triangle*> clippedTriangles;
-		performClipping(clippedTriangles, triangle);
+		Clipping::Perform(clippedTriangles, triangle);
 
 		for (auto clippedTriangle : clippedTriangles)
 		{
