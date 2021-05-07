@@ -7,6 +7,32 @@
 #include <student/drawModel.hpp>
 #include <student/gpu.hpp>
 
+void drawNode(GPUContext &ctx, Node const&node, Model const&model, glm::mat4 &matrix, glm::mat4 const&proj, glm::mat4 const&view, glm::vec3 const&light)
+{
+    if (node.mesh >= 0)
+    {
+        auto mesh = model.meshes[node.mesh];
+
+        auto combinedMatrix = matrix * node.modelMatrix;
+        ctx.prg.uniforms.uniform[1].m4 = combinedMatrix;
+        ctx.prg.uniforms.uniform[2].m4 = glm::inverse(glm::transpose(combinedMatrix));
+
+        ctx.prg.vertexShader = drawModel_vertexShader;
+        ctx.prg.fragmentShader = drawModel_fragmentShader;
+
+        ctx.prg.vs2fs[0] = AttributeType::VEC3;
+        ctx.prg.vs2fs[1] = AttributeType::VEC3;
+        ctx.prg.vs2fs[2] = AttributeType::VEC2;
+
+        ctx.prg.uniforms.uniform[0].m4 = proj * view;
+        ctx.prg.uniforms.uniform[3].v3 = light;
+
+        drawTriangles(ctx, mesh.nofIndices);
+    }
+
+    for (auto child : node.children)
+        drawNode(ctx, child, model, matrix, proj, view, light);
+}
 
 /**
  * @brief This function renders a model
@@ -29,6 +55,11 @@ void drawModel(GPUContext&ctx,Model const&model,glm::mat4 const&proj,glm::mat4 c
   /// \todo Tato funkce vykreslí model.<br>
   /// Vaším úkolem je správně projít model a vykreslit ho pomocí funkce drawTriangles (nevolejte drawTrianglesImpl, je to z důvodu testování).
   /// Bližší informace jsou uvedeny na hlavní stránce dokumentace.
+
+    auto identityMatrix = glm::mat4(1.f);
+
+    for (auto root : model.roots)
+        drawNode(ctx, root, model, identityMatrix, proj, view, light);
 }
 //! [drawModel]
 
