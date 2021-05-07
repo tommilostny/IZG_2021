@@ -136,13 +136,7 @@ public:
             {
                 if (e1 >= 0 && e2 >= 0 && e3 >= 0) //Fragment je v trojúhelníku
                 {
-                    InFragment inFragment;
-                    if (CreateFragment(inFragment, x, y, frame, prg.vs2fs, hypotenuse, triangleArea))
-                    {
-                        OutFragment outFragment;
-                        prg.fragmentShader(outFragment, inFragment, prg.uniforms);
-                        PerFragmentOperations(frame, outFragment, x, y, inFragment.gl_FragCoord.z);
-                    }
+                    SetPixel(x, y, frame, prg, hypotenuse, triangleArea);
                 }
                 e1 -= deltaY1;
                 e2 -= deltaY2;
@@ -152,6 +146,9 @@ public:
             edgeStart2 += deltaX2;
             edgeStart3 += deltaX3;
         }
+        DrawLine(Points[0].gl_Position, Points[1].gl_Position, frame, prg, hypotenuse, triangleArea);
+        DrawLine(Points[1].gl_Position, Points[2].gl_Position, frame, prg, hypotenuse, triangleArea);
+        DrawLine(Points[2].gl_Position, Points[0].gl_Position, frame, prg, hypotenuse, triangleArea);
     }
 
 protected:
@@ -208,6 +205,34 @@ protected:
         }
     }
 
+    void DrawLine(glm::vec4 fromPoint, glm::vec4 toPoint, Frame &frame, Program &prg, float hypotenuse, float triangleArea)
+    {
+        bool swapXY;
+        if (swapXY = glm::abs(toPoint.y - fromPoint.y) > glm::abs(toPoint.x - fromPoint.x))
+        {
+            Swap(&fromPoint.x, &fromPoint.y);
+            Swap(&toPoint.x, &toPoint.y);
+        }
+        if (fromPoint.x > toPoint.x)
+        {
+            Swap(&fromPoint.x, &toPoint.x);
+            Swap(&fromPoint.y, &toPoint.y);
+        }
+
+        auto k = (toPoint.y - fromPoint.y) / (toPoint.x - fromPoint.x);
+        auto y = fromPoint.y;
+        for (auto x = fromPoint.x; x <= toPoint.x; x++)
+        {
+            if (swapXY && y >= 0 && y < frame.width && x >= 0 && x < frame.height)
+                SetPixel(y, x, frame, prg, hypotenuse, triangleArea);
+
+            else if (!swapXY && x >= 0 && x < frame.width && y >= 0 && y < frame.height)
+                SetPixel(x, y, frame, prg, hypotenuse, triangleArea);
+
+            y += k;
+        }
+    }
+
 //Pomocné Triangle privátní funkce
 private:
     inline float EdgeFunction(uint8_t pointIndex, float x, float y, float deltaX, float deltaY)
@@ -237,6 +262,24 @@ private:
             area += (x[j] + x[i]) * (y[j] - y[i]);
 
         return glm::abs(area / 2.f);  
+    }
+
+    static inline void Swap(float *a, float *b)
+    {
+        float tmp = *a;
+        *a = *b;
+        *b = tmp;
+    }
+
+    void SetPixel(float x, float y, Frame &frame, Program &prg, float hypotenuse, float triangleArea)
+    {
+        InFragment inFragment;
+        if (CreateFragment(inFragment, x, y, frame, prg.vs2fs, hypotenuse, triangleArea))
+        {
+            OutFragment outFragment;
+            prg.fragmentShader(outFragment, inFragment, prg.uniforms);
+            PerFragmentOperations(frame, outFragment, x, y, inFragment.gl_FragCoord.z);
+        }
     }
 };
 
