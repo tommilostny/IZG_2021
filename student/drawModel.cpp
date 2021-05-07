@@ -9,7 +9,7 @@
 
 #include <iostream>
 
-void drawNode(GPUContext &ctx, Node const&node, Model const&model, glm::mat4 &matrix, glm::mat4 const&proj, glm::mat4 const&view, glm::vec3 const&light)
+void drawNode(GPUContext &ctx, Node const&node, Model const&model, glm::mat4 matrix, glm::mat4 const&proj, glm::mat4 const&view, glm::vec3 const&light)
 {
     matrix *= node.modelMatrix;
 
@@ -96,9 +96,9 @@ void drawModel_vertexShader(OutVertex&outVertex,InVertex const&inVertex,Uniforms
     auto mmodel = uniforms.uniform[1].m4;
     auto itmmodel = uniforms.uniform[2].m4;
 
-    outVertex.attributes[0].v4 = mmodel * inVertex.attributes[0].v4;
-    outVertex.attributes[1].v4 = itmmodel * inVertex.attributes[1].v4;
-    outVertex.attributes[2].v4 = inVertex.attributes[2].v4;
+    outVertex.attributes[0].v4 = mmodel * inVertex.attributes[0].v4; //pozice
+    outVertex.attributes[1].v4 = itmmodel * inVertex.attributes[1].v4; //normála
+    outVertex.attributes[2].v4 = inVertex.attributes[2].v4; //texturovací souřadnice
 
     outVertex.gl_Position = mvp * outVertex.attributes[0].v4;
 }
@@ -119,6 +119,25 @@ void drawModel_fragmentShader(OutFragment&outFragment,InFragment const&inFragmen
   /// \todo Tato funkce reprezentujte fragment shader.<br>
   /// Vaším úkolem je správně obarvit fragmenty a osvětlit je pomocí lambertova osvětlovacího modelu.
   /// Bližší informace jsou uvedeny na hlavní stránce dokumentace.
+
+    glm::vec4 diffColor;
+    if (uniforms.uniform[6].v1 > 0)
+    {
+        auto texCoord = inFragment.attributes[2].v2;
+        auto texture = uniforms.textures[0];
+        diffColor = read_texture(texture, texCoord); 
+    }
+    else
+        diffColor = uniforms.uniform[5].v4;
+    
+    auto position = inFragment.attributes[0].v3;
+    auto normal = glm::normalize(inFragment.attributes[1].v3);
+    auto lightPos = glm::normalize(uniforms.uniform[3].v3 - position);
+    auto af = 0.2f;
+    auto df = glm::clamp(glm::dot(lightPos, normal), 0.f, 1.f);
+
+    outFragment.gl_FragColor = diffColor * af + diffColor * df;
+    outFragment.gl_FragColor.a = diffColor.a;
 }
 //! [drawModel_fs]
 

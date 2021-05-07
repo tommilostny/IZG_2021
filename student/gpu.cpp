@@ -200,7 +200,7 @@ protected:
             bufferIndex <<= 2;		
             
             for (uint8_t i = 0; i < 4; i++) //Blending
-                frame.color[bufferIndex + i] = ClampColor((frame.color[bufferIndex + i] / 255.f) * (1 - alpha) + outFragment.gl_FragColor[i] * alpha, 0, 1) * 255;
+                frame.color[bufferIndex + i] = glm::clamp((frame.color[bufferIndex + i] / 255.f) * (1 - alpha) + outFragment.gl_FragColor[i] * alpha, 0.f, 1.f) * 255;
         }
     }
 
@@ -233,11 +233,6 @@ private:
 
         auto s = (a + b + c) / 2.0;
         return sqrt(s * (s - a) * (s - b) * (s - c));
-    }
-
-    static inline float ClampColor(float color, float from, float to)
-    {
-        return color < from ? from : (color > to ? to : color);
     }
 };
 
