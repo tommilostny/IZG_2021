@@ -9,9 +9,6 @@
 
 #include <iostream> //remove on release
 
-#define MIN(a,b) ( a > b ? b : a )
-#define MAX(a,b) ( a > b ? a : b )
-
 class VertexAssembly
 {
 public:
@@ -98,15 +95,10 @@ public:
     void Rasterize(Frame &frame, Program &prg)
     {
         //Obalový obdélník trojúhelníku
-        auto minX = MIN(Points[0].gl_Position.x, MIN(Points[1].gl_Position.x, Points[2].gl_Position.x));
-        auto minY = MIN(Points[0].gl_Position.y, MIN(Points[1].gl_Position.y, Points[2].gl_Position.y));
-        auto maxX = MAX(Points[0].gl_Position.x, MAX(Points[1].gl_Position.x, Points[2].gl_Position.x));
-        auto maxY = MAX(Points[0].gl_Position.y, MAX(Points[1].gl_Position.y, Points[2].gl_Position.y));
-
-        minX = MAX(minX, 0);
-        minY = MAX(minY, 0);
-        maxX = MIN(maxX, frame.width - 1);
-        maxY = MIN(maxY, frame.height - 1);
+        auto minX = glm::min(Points[0].gl_Position.x, glm::min(Points[1].gl_Position.x, Points[2].gl_Position.x));
+        auto minY = glm::min(Points[0].gl_Position.y, glm::min(Points[1].gl_Position.y, Points[2].gl_Position.y));
+        auto maxX = glm::max(Points[0].gl_Position.x, glm::max(Points[1].gl_Position.x, Points[2].gl_Position.x));
+        auto maxY = glm::max(Points[0].gl_Position.y, glm::max(Points[1].gl_Position.y, Points[2].gl_Position.y));
 
         auto deltaX1 = Points[1].gl_Position.x - Points[0].gl_Position.x;
         auto deltaX2 = Points[2].gl_Position.x - Points[1].gl_Position.x;
@@ -122,7 +114,7 @@ public:
         auto edgeStart3 = EdgeFunction(2, minX, minY, deltaX3, deltaY3);
 
         //Předpočítání přepony a obsahu celého trojúhelníku
-        auto hypotenuse = MAX(PointSum(0), MAX(PointSum(1), PointSum(2)));
+        auto hypotenuse = glm::max(PointSum(0), glm::max(PointSum(1), PointSum(2)));
         auto triangleArea = Area(Points[0].gl_Position.x, Points[0].gl_Position.y,
                             Points[1].gl_Position.x, Points[1].gl_Position.y,
                             Points[2].gl_Position.x, Points[2].gl_Position.y);
@@ -162,7 +154,9 @@ protected:
         inFragment.gl_FragCoord.x = x + 0.5;
         inFragment.gl_FragCoord.y = y + 0.5;
 
-        if (inFragment.gl_FragCoord.x + inFragment.gl_FragCoord.y <= hypotenuse) //kontrola přepony
+        if (inFragment.gl_FragCoord.x > 0 && inFragment.gl_FragCoord.x < frame.width
+            && inFragment.gl_FragCoord.y > 0 && inFragment.gl_FragCoord.y < frame.height
+            && inFragment.gl_FragCoord.x + inFragment.gl_FragCoord.y <= hypotenuse) //kontrola přepony
         {
             auto lambda0 = Lambda(2, 1, inFragment, triangleArea);
             auto lambda1 = Lambda(0, 2, inFragment, triangleArea);
@@ -328,10 +322,8 @@ void drawTrianglesImpl(GPUContext &ctx, uint32_t nofVertices){
     
     for (uint32_t t = 0; t < nofVertices; t += 3)
     {
-        auto triangle = new Triangle(ctx.vao, ctx.prg, t);
-
         std::vector<Triangle*> clippedTriangles;
-        Clipping::Perform(clippedTriangles, triangle);
+        Clipping::Perform(clippedTriangles, new Triangle(ctx.vao, ctx.prg, t));
 
         for (auto clippedTriangle : clippedTriangles)
         {
