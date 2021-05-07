@@ -20,3 +20,4 @@ build/libs/ArgumentViewer/ArgumentViewer/ArgumentViewerTargets.cmake
 build/libs/MealyMachine/MealyMachine/MealyMachineTargets.cmake
 build/libs/TxtUtils/TxtUtils/TxtUtilsTargets.cmake
 build/libs/SDL2-2.0.14/cmake_uninstall.cmake
+Release/
