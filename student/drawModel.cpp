@@ -3,11 +3,12 @@
  * @brief This file contains functions for model rendering
  *
  * @author Tomáš Milet, imilet@fit.vutbr.cz
+ * 
+ * student: Tomáš Milostný, xmilos02
  */
+
 #include <student/drawModel.hpp>
 #include <student/gpu.hpp>
-
-#include <iostream>
 
 void drawNode(GPUContext &ctx, Node const&node, Model const&model, glm::mat4 matrix, glm::mat4 const&proj, glm::mat4 const&view, glm::vec3 const&light)
 {
@@ -34,6 +35,9 @@ void drawNode(GPUContext &ctx, Node const&node, Model const&model, glm::mat4 mat
         ctx.vao.vertexAttrib[0] = mesh.position;
         ctx.vao.vertexAttrib[1] = mesh.normal;
         ctx.vao.vertexAttrib[2] = mesh.texCoord;
+
+        ctx.vao.indexBuffer = mesh.indices;
+        ctx.vao.indexType = mesh.indexType;
 
         if (ctx.prg.uniforms.uniform[6].v1 = mesh.diffuseTexture >= 0)
             ctx.prg.uniforms.textures[0] = model.textures[mesh.diffuseTexture];
@@ -138,6 +142,8 @@ void drawModel_fragmentShader(OutFragment&outFragment,InFragment const&inFragmen
 
     outFragment.gl_FragColor = diffColor * af + diffColor * df;
     outFragment.gl_FragColor.a = diffColor.a;
+
+    //outFragment.gl_FragColor = glm::vec4(1.f);
 }
 //! [drawModel_fs]
 

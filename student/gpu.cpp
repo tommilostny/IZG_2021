@@ -3,11 +3,11 @@
  * @brief This file contains implementation of gpu
  *
  * @author Tomáš Milet, imilet@fit.vutbr.cz
+ * 
+ * student: Tomáš Milostný, xmilos02
  */
 
 #include <student/gpu.hpp>
-
-#include <iostream> //remove on release
 
 class VertexAssembly
 {
@@ -43,13 +43,13 @@ private:
     {
         for (uint32_t i = 0; i < maxAttributes; i++)
         {
-            if (vao.vertexAttrib[i].type == AttributeType::EMPTY)
-                continue;
+            if ((int)vao.vertexAttrib[i].type)
+            {
+                auto ptr = (uint8_t*)vao.vertexAttrib[i].bufferData + vao.vertexAttrib[i].stride * inVertex.gl_VertexID + vao.vertexAttrib[i].offset;
 
-            auto ptr = (uint8_t*)vao.vertexAttrib[i].bufferData + vao.vertexAttrib[i].stride * inVertex.gl_VertexID + vao.vertexAttrib[i].offset;
-
-            for (int j = 0; j < (int)vao.vertexAttrib[i].type; j++)
-                inVertex.attributes[i].v4[j] = *(float*)(ptr + j * sizeof(float));
+                for (int j = 0; j < (int)vao.vertexAttrib[i].type; j++)
+                    inVertex.attributes[i].v4[j] = *(float*)(ptr + j * sizeof(float));
+            }
         }
     }
 };
@@ -100,6 +100,11 @@ public:
         auto maxX = glm::max(Points[0].gl_Position.x, glm::max(Points[1].gl_Position.x, Points[2].gl_Position.x));
         auto maxY = glm::max(Points[0].gl_Position.y, glm::max(Points[1].gl_Position.y, Points[2].gl_Position.y));
 
+        minX = glm::max(minX, 0.f);
+        minY = glm::max(minY, 0.f);
+        maxX = glm::min(maxX, frame.width - 1.f);
+        maxY = glm::min(maxY, frame.height - 1.f);
+
         auto deltaX1 = Points[1].gl_Position.x - Points[0].gl_Position.x;
         auto deltaX2 = Points[2].gl_Position.x - Points[1].gl_Position.x;
         auto deltaX3 = Points[0].gl_Position.x - Points[2].gl_Position.x;
@@ -115,18 +120,19 @@ public:
 
         //Předpočítání přepony a obsahu celého trojúhelníku
         auto hypotenuse = glm::max(PointSum(0), glm::max(PointSum(1), PointSum(2)));
-        auto triangleArea = Area(Points[0].gl_Position.x, Points[0].gl_Position.y,
-                            Points[1].gl_Position.x, Points[1].gl_Position.y,
-                            Points[2].gl_Position.x, Points[2].gl_Position.y);
 
-        for (int x = minX; x <= maxX; x++)
+        float xs[3] = { Points[0].gl_Position.x, Points[1].gl_Position.x, Points[2].gl_Position.x };
+        float ys[3] = { Points[0].gl_Position.y, Points[1].gl_Position.y, Points[2].gl_Position.y };
+        auto triangleArea = Area(xs, ys);
+
+        for (int y = minY; y <= maxY; y++)
         {
             //Inicializace hranových funckí pro pohyb v ose Y
             auto e1 = edgeStart1;
             auto e2 = edgeStart2;
             auto e3 = edgeStart3;
 
-            for (int y = minY; y <= maxY; y++)
+            for (int x = minX; x <= maxX; x++)
             {
                 if (e1 >= 0 && e2 >= 0 && e3 >= 0) //Fragment je v trojúhelníku
                 {
@@ -138,13 +144,13 @@ public:
                         PerFragmentOperations(frame, outFragment, x, y, inFragment.gl_FragCoord.z);
                     }
                 }
-                e1 += deltaX1;
-                e2 += deltaX2;
-                e3 += deltaX3;
+                e1 -= deltaY1;
+                e2 -= deltaY2;
+                e3 -= deltaY3;
             }
-            edgeStart1 -= deltaY1;
-            edgeStart2 -= deltaY2;
-            edgeStart3 -= deltaY3;
+            edgeStart1 += deltaX1;
+            edgeStart2 += deltaX2;
+            edgeStart3 += deltaX3;
         }
     }
 
@@ -154,9 +160,7 @@ protected:
         inFragment.gl_FragCoord.x = x + 0.5;
         inFragment.gl_FragCoord.y = y + 0.5;
 
-        if (inFragment.gl_FragCoord.x > 0 && inFragment.gl_FragCoord.x < frame.width
-            && inFragment.gl_FragCoord.y > 0 && inFragment.gl_FragCoord.y < frame.height
-            && inFragment.gl_FragCoord.x + inFragment.gl_FragCoord.y <= hypotenuse) //kontrola přepony
+        if (inFragment.gl_FragCoord.x + inFragment.gl_FragCoord.y <= hypotenuse) //kontrola přepony
         {
             auto lambda0 = Lambda(2, 1, inFragment, triangleArea);
             auto lambda1 = Lambda(0, 2, inFragment, triangleArea);
@@ -177,12 +181,12 @@ protected:
 
             for (uint32_t i = 0; i < maxAttributes; i++)
             {
-                if (vs2fs[i] == AttributeType::EMPTY)
-                    continue;
-
-                inFragment.attributes[i].v4 = Points[0].attributes[i].v4 * lambda0
-                    + Points[1].attributes[i].v4 * lambda1
-                    + Points[2].attributes[i].v4 * lambda2;
+                if ((int)vs2fs[i])
+                {
+                    inFragment.attributes[i].v4 = Points[0].attributes[i].v4 * lambda0
+                        + Points[1].attributes[i].v4 * lambda1
+                        + Points[2].attributes[i].v4 * lambda2;
+                }
             }
             return true;
         }
@@ -218,21 +222,21 @@ private:
 
     float Lambda(uint8_t pointIndex1, uint8_t pointIndex2, InFragment &fragment, float wholeTriangleArea)
     {
-        auto subTriangle = Area(Points[pointIndex1].gl_Position.x, Points[pointIndex1].gl_Position.y,
-                                Points[pointIndex2].gl_Position.x, Points[pointIndex2].gl_Position.y,
-                                fragment.gl_FragCoord.x, fragment.gl_FragCoord.y);
+        float xs[3] = { Points[pointIndex1].gl_Position.x, Points[pointIndex2].gl_Position.x, fragment.gl_FragCoord.x };
+        float ys[3] = { Points[pointIndex1].gl_Position.y, Points[pointIndex2].gl_Position.y, fragment.gl_FragCoord.y };
+        auto subTriangle = Area(xs, ys);
 
         return subTriangle / wholeTriangleArea;
     }
 
-    static float Area(float ax, float ay, float bx, float by, float cx, float cy)
+    static float Area(float x[3], float y[3])
     {
-        auto a = sqrt(pow(cx - bx, 2) + pow(cy - by, 2));
-        auto b = sqrt(pow(ax - cx, 2) + pow(ay - cy, 2));
-        auto c = sqrt(pow(bx - ax, 2) + pow(by - ay, 2));
+        //Shoelace formula
+        float area = 0.f;
+        for (uint8_t i = 0, j = 2; i < 3; j = i++)
+            area += (x[j] + x[i]) * (y[j] - y[i]);
 
-        auto s = (a + b + c) / 2.0;
-        return sqrt(s * (s - a) * (s - b) * (s - c));
+        return glm::abs(area / 2.f);  
     }
 };
 
