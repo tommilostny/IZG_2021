@@ -7,15 +7,18 @@
 #include <student/drawModel.hpp>
 #include <student/gpu.hpp>
 
+#include <iostream>
+
 void drawNode(GPUContext &ctx, Node const&node, Model const&model, glm::mat4 &matrix, glm::mat4 const&proj, glm::mat4 const&view, glm::vec3 const&light)
 {
+    matrix *= node.modelMatrix;
+
     if (node.mesh >= 0)
     {
         auto mesh = model.meshes[node.mesh];
 
-        auto combinedMatrix = matrix * node.modelMatrix;
-        ctx.prg.uniforms.uniform[1].m4 = combinedMatrix;
-        ctx.prg.uniforms.uniform[2].m4 = glm::inverse(glm::transpose(combinedMatrix));
+        ctx.prg.uniforms.uniform[1].m4 = matrix;
+        ctx.prg.uniforms.uniform[2].m4 = glm::transpose(glm::inverse(matrix));
 
         ctx.prg.vertexShader = drawModel_vertexShader;
         ctx.prg.fragmentShader = drawModel_fragmentShader;
@@ -26,6 +29,16 @@ void drawNode(GPUContext &ctx, Node const&node, Model const&model, glm::mat4 &ma
 
         ctx.prg.uniforms.uniform[0].m4 = proj * view;
         ctx.prg.uniforms.uniform[3].v3 = light;
+        ctx.prg.uniforms.uniform[5].v4 = mesh.diffuseColor;
+
+        ctx.vao.vertexAttrib[0] = mesh.position;
+        ctx.vao.vertexAttrib[1] = mesh.normal;
+        ctx.vao.vertexAttrib[2] = mesh.texCoord;
+
+        if (ctx.prg.uniforms.uniform[6].v1 = mesh.diffuseTexture >= 0)
+            ctx.prg.uniforms.textures[0] = model.textures[mesh.diffuseTexture];
+        else
+            ctx.prg.uniforms.textures[0] = Texture();
 
         drawTriangles(ctx, mesh.nofIndices);
     }
