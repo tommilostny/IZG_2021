@@ -1,0 +1,11 @@
+Model Information:
+* title:	Sony Trinitron PRL
+* source:	https://sketchfab.com/3d-models/sony-trinitron-prl-dce3f599de634388aef1eaf49e3606bf
+* author:	Bexxie (https://sketchfab.com/Bexxie)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Sony Trinitron PRL" (https://sketchfab.com/3d-models/sony-trinitron-prl-dce3f599de634388aef1eaf49e3606bf) by Bexxie (https://sketchfab.com/Bexxie) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
